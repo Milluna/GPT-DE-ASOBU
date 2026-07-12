@@ -452,7 +452,10 @@ export class AvatarRig {
     this.smoothedTurnRate = damp(this.smoothedTurnRate, turnRate, 10, dt);
 
     const speed01 = clamp(state.speed / 4.85, 0, 1);
-    this.stridePhase += dt * (2.2 + state.speed * 3.1);
+    const fixedLocomotionLoop = state.motion === "run" || state.motion === "sandori";
+    const locomotionEnergy = fixedLocomotionLoop ? 1 : speed01;
+    const strideRate = state.motion === "sandori" ? 15.8 : state.motion === "run" ? 13.4 : 2.2;
+    this.stridePhase += dt * strideRate;
     const stride = Math.sin(this.stridePhase);
     const secondaryStride = Math.sin(this.stridePhase + Math.PI / 2);
 
@@ -482,20 +485,21 @@ export class AvatarRig {
       torsoYaw = (t < 0.22 ? -0.3 : 0.48) * p;
       torsoZ = -0.1 * p;
       leftArmX = -0.2 * p;
-      rightArmX = t < 0.22 ? -1.12 * p : 1.24 * p;
+      // Positive X moves the hanging hand toward local -Z (behind); negative X moves it toward +Z (front).
+      rightArmX = t < 0.22 ? 1.12 * p : -1.24 * p;
       rightArmZ = t < 0.22 ? 0.82 * p : -0.92 * p;
-      racketX = t < 0.22 ? -1.0 * p : 1.2 * p;
+      racketX = t < 0.22 ? 1.0 * p : -1.2 * p;
       racketY = 0.14 * Math.sin(t * Math.PI * 2);
       racketZ = t < 0.22 ? 0.92 * p : -1.28 * p;
     } else if (state.motion === "run") {
-      bodyY += Math.abs(secondaryStride) * 0.035 * speed01;
-      torsoX = 0.12 * speed01;
+      bodyY += Math.abs(secondaryStride) * 0.035;
+      torsoX = 0.12;
       torsoZ = clamp(-this.smoothedTurnRate * 0.022, -0.16, 0.16);
       headZ = -torsoZ * 0.35;
-      leftLegX = stride * 0.72 * speed01;
-      rightLegX = -stride * 0.72 * speed01;
-      leftArmX = -stride * 0.48 * speed01;
-      rightArmX = stride * 0.48 * speed01;
+      leftLegX = stride * 0.72;
+      rightLegX = -stride * 0.72;
+      leftArmX = -stride * 0.48;
+      rightArmX = stride * 0.48;
       skirtZ = torsoZ * 0.3;
     } else if (state.motion === "sandori") {
       const bank = clamp(-this.smoothedTurnRate * 0.065, -0.34, 0.34);
@@ -565,20 +569,20 @@ export class AvatarRig {
     this.skirt.rotation.z = damp(this.skirt.rotation.z, skirtZ, 16, dt);
 
     const tailTarget =
-      Math.sin(this.elapsed * 4.4 + this.stridePhase * 0.28) * (0.06 + speed01 * 0.17) -
+      Math.sin(this.elapsed * 4.4 + this.stridePhase * 0.28) * (0.06 + locomotionEnergy * 0.17) -
       torsoZ * 0.4;
     this.ponytail.rotation.z = damp(this.ponytail.rotation.z, tailTarget, 11, dt);
     this.ponytail.rotation.x = damp(
       this.ponytail.rotation.x,
-      0.06 + Math.abs(stride) * speed01 * 0.1,
+      0.06 + Math.abs(stride) * locomotionEnergy * 0.1,
       10,
       dt,
     );
 
-    const shadowScale = 1 + speed01 * 0.13;
+    const shadowScale = 1 + locomotionEnergy * 0.13;
     this.shadow.scale.set(
       damp(this.shadow.scale.x, shadowScale, 10, dt),
-      damp(this.shadow.scale.y, 1 - speed01 * 0.08, 10, dt),
+      damp(this.shadow.scale.y, 1 - locomotionEnergy * 0.08, 10, dt),
       1,
     );
   }

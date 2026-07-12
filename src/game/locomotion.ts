@@ -95,7 +95,9 @@ export class LocomotionController {
     if (this.x < -this.tuning.boundaryX || this.x > this.tuning.boundaryX) { this.x = clamp(this.x, -this.tuning.boundaryX, this.tuning.boundaryX); this.velocityX = 0; }
     if (this.z < -this.tuning.boundaryZ || this.z > this.tuning.boundaryZ) { this.z = clamp(this.z, -this.tuning.boundaryZ, this.tuning.boundaryZ); this.velocityZ = 0; }
     this.speed = Math.hypot(this.velocityX, this.velocityZ);
-    const circular = hasInput && magnitude > 0.5 && this.speed > 1.15 && Math.abs(this.angularVelocity) >= this.tuning.sandoriAngularVelocity;
+    // Sandori is an input gesture, not a measure of realized displacement.
+    // Keep it active while deliberately circling the stick into a wall or net.
+    const circular = hasInput && magnitude > 0.5 && Math.abs(this.angularVelocity) >= this.tuning.sandoriAngularVelocity;
     if (circular) this.sandoriTimer = this.tuning.sandoriHoldSeconds;
     const sandori = hasInput && !sideStart && this.sandoriTimer > 0;
     if (sandori && !this.wasSandori) this.motionSequence += 1;

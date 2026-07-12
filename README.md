@@ -156,3 +156,9 @@ sandoriHoldSeconds
 ## Direct-source deployment
 
 The deployable TypeScript source lives directly at the repository root on this branch. Cloudflare uses `npm run build` and `npm run deploy`. The build runs unit tests and TypeScript checks before creating `dist/`.
+
+## v1.3 animation behavior
+
+- Racket wind-up now travels behind the avatar and strikes toward its visible front.
+- Run and sandori use fixed-rate leg loops driven by input motion, not realized displacement.
+- Sandori remains active while circling the stick into the center net or stage boundary.

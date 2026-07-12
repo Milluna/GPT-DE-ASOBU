@@ -60,6 +60,24 @@ describe("LocomotionController", () => {
     expect(sawSandori).toBe(true);
   });
 
+  it("keeps sandori active while circling the stick into the center net", () => {
+    const controller = new LocomotionController({ startDuration: 0.05 });
+    controller.reset(0, 0.34, Math.PI);
+    let now = 0;
+    let lastMotion = controller.motion;
+
+    for (let frame = 0; frame < 48; frame += 1) {
+      const x = frame % 2 === 0 ? 0.04 : -0.04;
+      const y = Math.sqrt(1 - x * x);
+      now += 1000 / 60;
+      lastMotion = controller.update(1 / 60, { x, y }, now).motion;
+    }
+
+    expect(controller.z).toBeCloseTo(0.34, 5);
+    expect(controller.speed).toBeLessThan(0.3);
+    expect(lastMotion).toBe("sandori");
+  });
+
   it("blocks a straight crossing through the middle of the net", () => {
     const controller = new LocomotionController();
     step(controller, { x: 0, y: 1 }, 120);
