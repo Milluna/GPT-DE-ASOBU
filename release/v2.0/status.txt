@@ -1,12 +1,21 @@
-status=failure
-run_id=29197738066
-trigger_sha=9b38b1cc783d81d42381023dace5bcab79a32aaa
-recorded_at=2026-07-12T15:12:35Z
+status=success
+run_id=29197833345
+trigger_sha=0eb235a6d5004d199c328d7bed7b55a2997bd420
+recorded_at=2026-07-12T15:15:27Z
 
 --- build log tail ---
 $ tsc -b --pretty false && vite build
-tests/characters.test.ts(7,8): error TS6307: File '/home/runner/work/GPT-DE-ASOBU/GPT-DE-ASOBU/app/src/characters.ts' is not listed within the file list of project '/home/runner/work/GPT-DE-ASOBU/GPT-DE-ASOBU/app/tsconfig.tests.json'. Projects must list all files or use an 'include' pattern.
-  The file is in the program because:
-    Imported via "../src/characters" from file '/home/runner/work/GPT-DE-ASOBU/GPT-DE-ASOBU/app/tests/characters.test.ts'
-    Imported via "./characters" from file '/home/runner/work/GPT-DE-ASOBU/GPT-DE-ASOBU/app/src/types.ts'
-error: script "build:app" exited with code 1
+vite v8.1.4 building client environment for production...
+transforming...✓ 17 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                   1.12 kB │ gzip:   0.59 kB
+dist/assets/index-BcDy1-J1.css   46.75 kB │ gzip:  10.59 kB
+dist/assets/index-BOUG3P-y.js   584.16 kB │ gzip: 150.36 kB
+
+✓ built in 255ms
+[plugin builtin:vite-reporter] 
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
