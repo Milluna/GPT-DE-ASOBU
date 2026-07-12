@@ -1,0 +1,75 @@
+name: Prepare direct-source branch
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/prepare-direct-source.yml
+
+permissions:
+  contents: write
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Materialize the deployable source
+        shell: bash
+        run: |
+          set -euo pipefail
+          out="$RUNNER_TEMP/aori-room-direct"
+          rm -rf "$out"
+          mkdir -p "$out"
+          unzip -q aori-room-source.zip -d "$out"
+          node fix-apply-v1.1.mjs
+          node apply-v1.1.mjs "$out"
+          node apply-v1.2.mjs "$out"
+          rm -f "$out/package-lock.json" "$out"/*.tsbuildinfo
+
+          node --input-type=module - "$out/package.json" <<'NODE'
+          import { readFileSync, writeFileSync } from "node:fs";
+          const path = process.argv[2];
+          const pkg = JSON.parse(readFileSync(path, "utf8"));
+          const originalBuild = pkg.scripts.build;
+          pkg.name = "gpt-de-asobu";
+          pkg.version = "1.2.0";
+          pkg.private = true;
+          pkg.packageManager = "bun@1.2.15";
+          pkg.engines = { node: ">=22" };
+          pkg.scripts["build:app"] = originalBuild;
+          pkg.scripts.build = "npm run test && npm run build:app";
+          pkg.scripts.deploy = "bunx wrangler deploy";
+          pkg.dependencies.three = "0.185.1";
+          Object.assign(pkg.devDependencies, {
+            "@cloudflare/workers-types": "5.20260712.1",
+            "@types/node": "26.1.1",
+            "@types/three": "0.185.1",
+            typescript: "7.0.2",
+            vite: "8.1.4",
+            vitest: "4.1.10",
+            wrangler: "4.110.0"
+          });
+          writeFileSync(path, JSON.stringify(pkg, null, 2) + "\n");
+          NODE
+
+          cat >> "$out/README.md" <<'EOF'
+
+          ## Direct-source deployment
+
+          The deployable TypeScript source lives directly at the repository root on this branch. Cloudflare uses `npm run build` and `npm run deploy`. The build runs unit tests and TypeScript checks before creating `dist/`.
+          EOF
+
+          git checkout -B source-direct-v1.2
+          git rm -rf .
+          git clean -fdx
+          cp -a "$out"/. .
+          git add -A
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Materialize direct v1.2 source tree"
+          git push --force origin HEAD:source-direct-v1.2
