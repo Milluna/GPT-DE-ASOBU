@@ -1,0 +1,89 @@
+name: Apply v2.0 final character selection
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/v2.0-trigger
+
+permissions:
+  contents: write
+
+concurrency:
+  group: aori-room-v2-source-update
+  cancel-in-progress: false
+
+jobs:
+  patch-source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out patcher
+        uses: actions/checkout@v4
+        with:
+          path: patcher
+          fetch-depth: 1
+
+      - name: Check out deployable source
+        uses: actions/checkout@v4
+        with:
+          ref: source-direct-v1.2
+          path: app
+          fetch-depth: 0
+
+      - name: Materialize release patcher
+        shell: bash
+        run: |
+          set -euo pipefail
+          base64 --decode patcher/release/v2.0/apply-v2.0.mjs.xz.b64 \
+            | xz --decompress --stdout \
+            > "$RUNNER_TEMP/apply-v2.0.mjs"
+          node --check "$RUNNER_TEMP/apply-v2.0.mjs"
+
+      - name: Apply character-selection release
+        run: node "$RUNNER_TEMP/apply-v2.0.mjs" app
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.2.15
+
+      - name: Install dependencies
+        working-directory: app
+        run: bun install
+
+      - name: Run unit tests
+        working-directory: app
+        run: bun run test
+
+      - name: Type-check and build production bundle
+        working-directory: app
+        run: bun run build:app
+
+      - name: Commit verified source update
+        working-directory: app
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add \
+            README.md \
+            package.json \
+            bun.lock \
+            src/app.ts \
+            src/characters.ts \
+            src/titleScreen.ts \
+            src/types.ts \
+            src/styles.css \
+            src/game/avatar.ts \
+            src/game/game.ts \
+            src/game/remoteInterpolator.ts \
+            tests/characters.test.ts \
+            worker/index.ts
+          if git diff --cached --quiet; then
+            echo "Source branch is already at v2.0"
+            exit 0
+          fi
+          git commit -m "Add final character select and synced avatars"
+          git push origin HEAD:source-direct-v1.2
