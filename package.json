@@ -2,7 +2,7 @@
   "name": "aori-room-cloudflare-deploy",
   "private": true,
   "scripts": {
-    "build": "rm -rf app && mkdir app && unzip -q aori-room-source.zip -d app && cd app && bun install && bun run build",
+    "build": "rm -rf app && mkdir app && unzip -q aori-room-source.zip -d app && cd app && rm -f package-lock.json && bun install && bun run build",
     "deploy": "cd app && bunx wrangler deploy"
   }
 }
