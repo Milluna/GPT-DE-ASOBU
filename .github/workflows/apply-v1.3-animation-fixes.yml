@@ -1,0 +1,189 @@
+name: Apply v1.3 animation fixes
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/v1.3-trigger
+
+permissions:
+  contents: write
+
+concurrency:
+  group: aori-room-v1.3-source-update
+  cancel-in-progress: false
+
+jobs:
+  patch-source:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out direct source branch
+        uses: actions/checkout@v4
+        with:
+          ref: source-direct-v1.2
+          fetch-depth: 0
+
+      - name: Apply animation and blocked-sandori fixes
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import { readFileSync, writeFileSync } from "node:fs";
+
+          const read = (path) => readFileSync(path, "utf8");
+          const write = (path, content) => writeFileSync(path, content);
+          const replaceOnce = (path, from, to) => {
+            const source = read(path);
+            if (!source.includes(from)) {
+              throw new Error(`v1.3 patch anchor missing: ${path}\n${from}`);
+            }
+            write(path, source.replace(from, to));
+          };
+
+          replaceOnce(
+            "src/game/avatar.ts",
+            `    const speed01 = clamp(state.speed / 4.85, 0, 1);
+              this.stridePhase += dt * (2.2 + state.speed * 3.1);
+              const stride = Math.sin(this.stridePhase);
+              const secondaryStride = Math.sin(this.stridePhase + Math.PI / 2);`,
+            `    const speed01 = clamp(state.speed / 4.85, 0, 1);
+              const fixedLocomotionLoop = state.motion === "run" || state.motion === "sandori";
+              const locomotionEnergy = fixedLocomotionLoop ? 1 : speed01;
+              const strideRate = state.motion === "sandori" ? 15.8 : state.motion === "run" ? 13.4 : 2.2;
+              this.stridePhase += dt * strideRate;
+              const stride = Math.sin(this.stridePhase);
+              const secondaryStride = Math.sin(this.stridePhase + Math.PI / 2);`,
+          );
+
+          replaceOnce(
+            "src/game/avatar.ts",
+            `      rightArmX = t < 0.22 ? -1.12 * p : 1.24 * p;
+                  rightArmZ = t < 0.22 ? 0.82 * p : -0.92 * p;
+                  racketX = t < 0.22 ? -1.0 * p : 1.2 * p;`,
+            `      // The arm extends down the local -Y axis. Positive X rotation sends the hand
+                  // toward local -Z (behind the character); negative X sends it toward +Z (front).
+                  rightArmX = t < 0.22 ? 1.12 * p : -1.24 * p;
+                  rightArmZ = t < 0.22 ? 0.82 * p : -0.92 * p;
+                  racketX = t < 0.22 ? 1.0 * p : -1.2 * p;`,
+          );
+
+          replaceOnce(
+            "src/game/avatar.ts",
+            `    } else if (state.motion === "run") {
+                  bodyY += Math.abs(secondaryStride) * 0.035 * speed01;
+                  torsoX = 0.12 * speed01;
+                  torsoZ = clamp(-this.smoothedTurnRate * 0.022, -0.16, 0.16);
+                  headZ = -torsoZ * 0.35;
+                  leftLegX = stride * 0.72 * speed01;
+                  rightLegX = -stride * 0.72 * speed01;
+                  leftArmX = -stride * 0.48 * speed01;
+                  rightArmX = stride * 0.48 * speed01;
+                  skirtZ = torsoZ * 0.3;`,
+            `    } else if (state.motion === "run") {
+                  // Intent drives a full, fixed locomotion loop even when collision prevents displacement.
+                  bodyY += Math.abs(secondaryStride) * 0.035;
+                  torsoX = 0.12;
+                  torsoZ = clamp(-this.smoothedTurnRate * 0.022, -0.16, 0.16);
+                  headZ = -torsoZ * 0.35;
+                  leftLegX = stride * 0.72;
+                  rightLegX = -stride * 0.72;
+                  leftArmX = -stride * 0.48;
+                  rightArmX = stride * 0.48;
+                  skirtZ = torsoZ * 0.3;`,
+          );
+
+          replaceOnce(
+            "src/game/avatar.ts",
+            `      Math.sin(this.elapsed * 4.4 + this.stridePhase * 0.28) * (0.06 + speed01 * 0.17) -`,
+            `      Math.sin(this.elapsed * 4.4 + this.stridePhase * 0.28) * (0.06 + locomotionEnergy * 0.17) -`,
+          );
+          replaceOnce(
+            "src/game/avatar.ts",
+            `      0.06 + Math.abs(stride) * speed01 * 0.1,`,
+            `      0.06 + Math.abs(stride) * locomotionEnergy * 0.1,`,
+          );
+          replaceOnce(
+            "src/game/avatar.ts",
+            `    const shadowScale = 1 + speed01 * 0.13;
+              this.shadow.scale.set(
+                damp(this.shadow.scale.x, shadowScale, 10, dt),
+                damp(this.shadow.scale.y, 1 - speed01 * 0.08, 10, dt),`,
+            `    const shadowScale = 1 + locomotionEnergy * 0.13;
+              this.shadow.scale.set(
+                damp(this.shadow.scale.x, shadowScale, 10, dt),
+                damp(this.shadow.scale.y, 1 - locomotionEnergy * 0.08, 10, dt),`,
+          );
+
+          replaceOnce(
+            "src/game/locomotion.ts",
+            `    const circular = hasInput && magnitude > 0.5 && this.speed > 1.15 && Math.abs(this.angularVelocity) >= this.tuning.sandoriAngularVelocity;`,
+            `    // Sandori is an input gesture, not a measure of realized displacement. Keep it
+                // active when the player is deliberately circling the stick into a wall or net.
+                const circular = hasInput && magnitude > 0.5 && Math.abs(this.angularVelocity) >= this.tuning.sandoriAngularVelocity;`,
+          );
+
+          replaceOnce(
+            "tests/locomotion.test.ts",
+            `  it("blocks a straight crossing through the middle of the net", () => {`,
+            `  it("keeps sandori active while circling the stick into the center net", () => {
+                const controller = new LocomotionController({ startDuration: 0.05 });
+                controller.reset(0, 0.34, Math.PI);
+                let now = 0;
+                let lastMotion = controller.motion;
+
+                for (let frame = 0; frame < 48; frame += 1) {
+                  const x = frame % 2 === 0 ? 0.04 : -0.04;
+                  const y = Math.sqrt(1 - x * x);
+                  now += 1000 / 60;
+                  lastMotion = controller.update(1 / 60, { x, y }, now).motion;
+                }
+
+                expect(controller.z).toBeCloseTo(0.34, 5);
+                expect(controller.speed).toBeLessThan(0.3);
+                expect(lastMotion).toBe("sandori");
+              });
+
+              it("blocks a straight crossing through the middle of the net", () => {`,
+          );
+
+          const packagePath = "package.json";
+          const pkg = JSON.parse(read(packagePath));
+          pkg.version = "1.3.0";
+          write(packagePath, JSON.stringify(pkg, null, 2) + "\n");
+
+          const readmePath = "README.md";
+          const marker = "## v1.3 animation behavior";
+          const readme = read(readmePath);
+          if (!readme.includes(marker)) {
+            write(
+              readmePath,
+              `${readme.trimEnd()}\n\n${marker}\n\n- Racket wind-up now travels behind the avatar and strikes toward its visible front.\n- Run and sandori use fixed-rate leg loops driven by input motion, not realized displacement.\n- Sandori remains active while circling the stick into the center net or stage boundary.\n`,
+            );
+          }
+
+          console.log("Applied AORI ROOM v1.3 animation fixes");
+          NODE
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.2.15
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Run unit tests
+        run: bun run test
+
+      - name: Type-check and build
+        run: bun run build:app
+
+      - name: Commit direct source update
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/game/avatar.ts src/game/locomotion.ts tests/locomotion.test.ts package.json README.md bun.lock
+          git commit -m "Fix racket direction and use fixed locomotion loops"
+          git push origin HEAD:source-direct-v1.2
