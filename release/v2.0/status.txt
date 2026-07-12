@@ -1,0 +1,4 @@
+status=failure
+run_id=29197624705
+trigger_sha=6a39ea96c88f9439d49cbd7632504e28879706d3
+recorded_at=2026-07-12T15:09:22Z
