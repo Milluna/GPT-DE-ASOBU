@@ -87,3 +87,26 @@ jobs:
           fi
           git commit -m "Add final character select and synced avatars"
           git push origin HEAD:source-direct-v1.2
+
+      - name: Publish release verification status
+        if: always()
+        working-directory: patcher
+        shell: bash
+        env:
+          RELEASE_STATUS: ${{ job.status }}
+          RELEASE_RUN_ID: ${{ github.run_id }}
+          RELEASE_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          mkdir -p release/v2.0
+          printf 'status=%s\nrun_id=%s\ntrigger_sha=%s\nrecorded_at=%s\n' \
+            "$RELEASE_STATUS" \
+            "$RELEASE_RUN_ID" \
+            "$RELEASE_SHA" \
+            "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            > release/v2.0/status.txt
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add release/v2.0/status.txt
+          git commit -m "Record v2.0 verification status: $RELEASE_STATUS"
+          git push origin HEAD:main
