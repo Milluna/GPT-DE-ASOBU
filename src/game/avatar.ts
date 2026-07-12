@@ -1,33 +1,8 @@
 import * as THREE from "three";
+import { getCharacterDefinition, type CharacterId } from "../characters";
 import type { MotionName, PlayerRole, PlayerState } from "../types";
 
-interface AvatarPalette {
-  hair: string;
-  hairShadow: string;
-  outfit: string;
-  outfitAccent: string;
-  eye: string;
-  ribbon: string;
-}
-
-const PALETTES: Record<PlayerRole, AvatarPalette> = {
-  host: {
-    hair: "#6d3b78",
-    hairShadow: "#38264c",
-    outfit: "#ff86ac",
-    outfitAccent: "#8d73f3",
-    eye: "#6f58d9",
-    ribbon: "#62d9e5",
-  },
-  guest: {
-    hair: "#315b69",
-    hairShadow: "#213a4c",
-    outfit: "#62d7c7",
-    outfitAccent: "#5d83ec",
-    eye: "#3d7ec7",
-    ribbon: "#ff9bc0",
-  },
-};
+// Character palettes are defined in ../characters.
 
 const OUTLINE_MATERIAL = new THREE.MeshBasicMaterial({
   color: 0x261f37,
@@ -226,8 +201,9 @@ export class AvatarRig {
   private previousYaw = Math.PI;
   private smoothedTurnRate = 0;
 
-  constructor(role: PlayerRole) {
-    const palette = PALETTES[role];
+  constructor(role: PlayerRole, characterId: CharacterId) {
+    const character = getCharacterDefinition(characterId);
+    const palette = character.palette;
     const fabricTexture = makeFabricTexture(palette.outfit, palette.outfitAccent);
     const faceTexture = makeFaceTexture(palette.eye);
     this.ownedTextures.push(fabricTexture, faceTexture);
@@ -242,7 +218,7 @@ export class AvatarRig {
     const white = toonMaterial("#fffaf7");
     const dark = toonMaterial("#443b61");
 
-    this.root.name = `${role}-avatar`;
+    this.root.name = `${role}-${characterId}-avatar`;
     this.root.add(this.visual);
 
     const shadowMaterial = new THREE.MeshBasicMaterial({
@@ -255,6 +231,18 @@ export class AvatarRig {
     this.shadow.rotation.x = -Math.PI / 2;
     this.shadow.position.y = 0.012;
     this.root.add(this.shadow);
+
+    const roleRingMaterial = new THREE.MeshBasicMaterial({
+      color: role === "host" ? 0xff7eb9 : 0x72f0dc,
+      transparent: true,
+      opacity: 0.34,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+    });
+    const roleRing = new THREE.Mesh(new THREE.RingGeometry(0.52, 0.58, 40), roleRingMaterial);
+    roleRing.rotation.x = -Math.PI / 2;
+    roleRing.position.y = 0.016;
+    this.root.add(roleRing);
 
     // Legs and chunky shoes. The total figure is approximately three heads tall.
     this.leftLeg.position.set(-0.145, 0.88, 0);
@@ -415,21 +403,57 @@ export class AvatarRig {
       outline: 1.045,
     });
 
-    this.ponytail.position.set(0.37, 0.17, -0.25);
+    this.ponytail.position.set(0, 0, 0);
     this.headPivot.add(this.ponytail);
     const tailGeometry = new THREE.SphereGeometry(0.5, 18, 14);
-    addOutlinedMesh(this.ponytail, tailGeometry, hair, {
-      position: [0.09, -0.05, 0],
-      scale: [0.26, 0.52, 0.28],
-      rotation: [0, 0, -0.34],
-      outline: 1.045,
-    });
     const ribbonGeometry = new THREE.ConeGeometry(0.13, 0.26, 4);
-    addOutlinedMesh(this.ponytail, ribbonGeometry, ribbon, {
-      position: [-0.05, 0.1, 0.01],
-      rotation: [0, 0, Math.PI / 4],
-      outline: 1.055,
-    });
+
+    if (character.hairStyle === "side-pony") {
+      addOutlinedMesh(this.ponytail, tailGeometry, hair, {
+        position: [0.46, 0.12, -0.25],
+        scale: [0.26, 0.52, 0.28],
+        rotation: [0, 0, -0.34],
+        outline: 1.045,
+      });
+      addOutlinedMesh(this.ponytail, ribbonGeometry, ribbon, {
+        position: [0.32, 0.27, -0.24],
+        rotation: [0, 0, Math.PI / 4],
+        outline: 1.055,
+      });
+    } else if (character.hairStyle === "twin-tail") {
+      for (const side of [-1, 1] as const) {
+        addOutlinedMesh(this.ponytail, tailGeometry, hair, {
+          position: [side * 0.46, 0.02, -0.2],
+          scale: [0.24, 0.5, 0.26],
+          rotation: [0, 0, side * 0.38],
+          outline: 1.045,
+        });
+        addOutlinedMesh(this.ponytail, ribbonGeometry, ribbon, {
+          position: [side * 0.34, 0.22, -0.18],
+          rotation: [0, 0, side * Math.PI / 4],
+          outline: 1.055,
+        });
+      }
+    } else {
+      addOutlinedMesh(this.headPivot, tailGeometry, hair, {
+        position: [-0.31, -0.02, -0.02],
+        scale: [0.32, 0.43, 0.38],
+        rotation: [0, 0, -0.12],
+        outline: 1.035,
+      });
+      addOutlinedMesh(this.headPivot, tailGeometry, hair, {
+        position: [0.31, -0.02, -0.02],
+        scale: [0.32, 0.43, 0.38],
+        rotation: [0, 0, 0.12],
+        outline: 1.035,
+      });
+      addOutlinedMesh(this.ponytail, ribbonGeometry, ribbon, {
+        position: [0, 0.43, -0.05],
+        scale: [0.72, 0.72, 0.72],
+        rotation: [0, 0, Math.PI / 4],
+        outline: 1.055,
+      });
+    }
 
     this.bubbleAnchor.position.set(0, 2.38, 0);
     this.root.add(this.bubbleAnchor);

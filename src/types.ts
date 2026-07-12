@@ -1,3 +1,5 @@
+import type { CharacterId } from "./characters";
+
 export type PlayerRole = "host" | "guest";
 
 export type MotionName =
@@ -16,6 +18,7 @@ export interface PlayerState {
   motion: MotionName;
   motionSequence: number;
   clientTime: number;
+  characterId?: CharacterId;
 }
 
 export interface PresenceState {

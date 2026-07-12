@@ -6,6 +6,7 @@ interface Env {
 }
 
 type PlayerRole = "host" | "guest";
+type CharacterId = "lumi" | "mio" | "sena";
 type MotionName = "idle" | "run" | "start-left" | "start-right" | "sandori" | "racket-swing";
 
 interface PlayerState {
@@ -16,6 +17,7 @@ interface PlayerState {
   motion: MotionName;
   motionSequence: number;
   clientTime: number;
+  characterId?: CharacterId;
 }
 
 interface RoomRecord {
@@ -38,6 +40,7 @@ interface SocketAttachment {
 const ROOM_TTL_MS = 30 * 60 * 1000;
 const GUEST_RECONNECT_GRACE_MS = 2 * 60 * 1000;
 const MAX_MESSAGE_BYTES = 4_096;
+const CHARACTER_IDS = new Set<CharacterId>(["lumi", "mio", "sena"]);
 const MOTIONS = new Set<MotionName>([
   "idle",
   "run",
@@ -94,6 +97,10 @@ function sanitizePlayerState(value: unknown): PlayerState | null {
     motion: motion as MotionName,
     motionSequence: clamp(Math.trunc(finiteNumber(candidate.motionSequence)), 0, 2_147_483_647),
     clientTime: clamp(finiteNumber(candidate.clientTime), 0, Number.MAX_SAFE_INTEGER),
+    ...(typeof candidate.characterId === "string" &&
+    CHARACTER_IDS.has(candidate.characterId as CharacterId)
+      ? { characterId: candidate.characterId as CharacterId }
+      : {}),
   };
 }
 

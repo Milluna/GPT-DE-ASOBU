@@ -1,4 +1,11 @@
+import {
+  DEFAULT_CHARACTER_ID,
+  getCharacterDefinition,
+  isCharacterId,
+  type CharacterId,
+} from "./characters";
 import { TauntGame } from "./game/game";
+import { createTitleScreen } from "./titleScreen";
 import {
   createRoom,
   joinRoom,
@@ -10,6 +17,7 @@ import type { MessageTabs, PlayerRole, PresenceState, RoomSession } from "./type
 
 const TITLE = "AORI ROOM";
 const LOCAL_ROOM_CODE = "LOCAL";
+const CHARACTER_STORAGE_KEY = "aori-room.character.v2";
 const TAB_LABELS = ["あいさつ", "ちょい煽り", "リアクション"] as const;
 
 function element<K extends keyof HTMLElementTagNameMap>(
@@ -61,9 +69,11 @@ export class App {
   private bubbleSequence = 0;
   private toastTimer: number | null = null;
   private loadingOverlay: HTMLDivElement | null = null;
+  private selectedCharacterId: CharacterId = DEFAULT_CHARACTER_ID;
 
   constructor(root: HTMLElement) {
     this.root = root;
+    this.selectedCharacterId = this.loadSelectedCharacter();
     this.messages = this.messageStore.load();
     this.renderTitle();
   }
@@ -74,70 +84,20 @@ export class App {
     document.body.classList.remove("is-in-room");
     document.title = TITLE;
 
-    const screen = element("main", "title-screen");
-    const ambient = element("div", "title-ambient");
-    ambient.setAttribute("aria-hidden", "true");
-    for (let index = 0; index < 12; index += 1) {
-      const mote = element("i", "title-mote");
-      mote.style.setProperty("--mote-index", String(index));
-      ambient.append(mote);
-    }
-
-    const hero = element("section", "title-card");
-    const eyebrow = element("p", "title-eyebrow", "2人だけの3Dコミュニケーション");
-    const logo = element("h1", "title-logo");
-    logo.append(element("span", "title-logo__main", "AORI"));
-    logo.append(element("span", "title-logo__sub", "ROOM"));
-    const description = element(
-      "p",
-      "title-description",
-      "指先でくるくる移動。18個の定型メッセージで、気心の知れた相手とじゃれ合おう。",
-    );
-
-    const actions = element("div", "title-actions");
-    actions.append(
-      button("primary-button primary-button--create", "部屋をつくる", () => {
+    const screen = createTitleScreen({
+      selectedCharacterId: this.selectedCharacterId,
+      onSelectCharacter: (characterId) => {
+        this.selectedCharacterId = characterId;
+        this.saveSelectedCharacter(characterId);
+      },
+      onCreateRoom: () => {
         void this.handleCreateRoom();
-      }),
-      button("primary-button primary-button--join", "部屋に入る", () => this.openJoinDialog()),
-      button("secondary-button", "この端末だけで操作を試す", () => this.startLocalDemo()),
-      button("text-button", "💬 メッセージ設定", () => this.renderSettings()),
-    );
-
-    const footnote = element(
-      "p",
-      "title-footnote",
-      "縦持ち推奨 · Safari対応プロトタイプ · 部屋は30分で終了",
-    );
-    hero.append(eyebrow, logo, description, actions, footnote);
-
-    const characterPreview = this.createTitleCharacterPreview();
-    screen.append(ambient, characterPreview, hero);
+      },
+      onJoinRoom: () => this.openJoinDialog(),
+      onLocalDemo: () => this.startLocalDemo(),
+      onSettings: () => this.renderSettings(),
+    });
     this.root.append(screen);
-  }
-
-  private createTitleCharacterPreview(): HTMLElement {
-    const figure = element("div", "title-character");
-    figure.setAttribute("aria-hidden", "true");
-    const shadow = element("div", "title-character__shadow");
-    const body = element("div", "title-character__body");
-    const hairBack = element("div", "title-character__hair-back");
-    const head = element("div", "title-character__head");
-    const bangs = element("div", "title-character__bangs");
-    const pony = element("div", "title-character__pony");
-    const face = element("div", "title-character__face");
-    face.append(element("i", "title-character__eye"), element("i", "title-character__eye"));
-    const torso = element("div", "title-character__torso");
-    const skirt = element("div", "title-character__skirt");
-    const leftArm = element("div", "title-character__arm title-character__arm--left");
-    const rightArm = element("div", "title-character__arm title-character__arm--right");
-    const leftLeg = element("div", "title-character__leg title-character__leg--left");
-    const rightLeg = element("div", "title-character__leg title-character__leg--right");
-    head.append(hairBack, face, bangs, pony);
-    body.append(leftLeg, rightLeg, torso, skirt, leftArm, rightArm, head);
-    const bubble = element("div", "title-character__bubble", "くるくる〜");
-    figure.append(shadow, body, bubble);
-    return figure;
   }
 
   private async handleCreateRoom(): Promise<void> {
@@ -227,6 +187,7 @@ export class App {
     this.root.replaceChildren();
     document.body.classList.add("is-in-room");
     document.title = session.localOnly ? `${TITLE} · 操作テスト` : `${TITLE} · ${session.roomCode}`;
+    const localCharacter = getCharacterDefinition(this.selectedCharacterId);
 
     const screen = element("main", "game-screen");
     const mount = element("div", "game-stage");
@@ -272,10 +233,15 @@ export class App {
 
     const participantCard = element("div", "participant-card");
     const localPill = element("span", "participant-pill participant-pill--local");
-    localPill.append(element("i", "participant-pill__swatch"), document.createTextNode("あなた"));
+    localPill.dataset.character = localCharacter.id;
+    const localSwatch = element("i", "participant-pill__swatch");
+    localSwatch.style.background = `linear-gradient(135deg, ${localCharacter.palette.hair}, ${localCharacter.palette.outfitAccent})`;
+    localSwatch.style.boxShadow = `0 0 12px ${localCharacter.palette.glow}`;
+    localPill.append(localSwatch, document.createTextNode(`あなた・${localCharacter.name}`));
     const versus = element("span", "participant-versus", "×");
     const peerPill = element("span", "participant-pill participant-pill--peer is-waiting");
     const peerSwatch = element("i", "participant-pill__swatch");
+    let remoteCharacterId: CharacterId | null = null;
     const peerText = document.createTextNode(session.localOnly ? "練習相手なし" : "待っています…");
     peerPill.append(peerSwatch, peerText);
     participantCard.append(localPill, versus, peerPill);
@@ -310,6 +276,17 @@ export class App {
         mount,
         overlay,
         role: session.role,
+        characterId: this.selectedCharacterId,
+        onRemoteCharacter: (characterId) => {
+          remoteCharacterId = characterId;
+          const remoteCharacter = getCharacterDefinition(characterId);
+          peerPill.dataset.character = remoteCharacter.id;
+          peerSwatch.style.background = `linear-gradient(135deg, ${remoteCharacter.palette.hair}, ${remoteCharacter.palette.outfitAccent})`;
+          peerSwatch.style.boxShadow = `0 0 12px ${remoteCharacter.palette.glow}`;
+          if (peerPill.classList.contains("is-present")) {
+            peerText.nodeValue = `${remoteCharacter.name}と対戦中`;
+          }
+        },
         onLocalState: (state) => network?.sendState(state),
         onPerformanceMode: (mode) => {
           performanceBadge.hidden = mode !== "reduced";
@@ -343,7 +320,11 @@ export class App {
       const connected = presence[oppositeRole(session.role)];
       peerPill.classList.toggle("is-waiting", !connected);
       peerPill.classList.toggle("is-present", connected);
-      peerText.nodeValue = connected ? `${roleLabel(oppositeRole(session.role))}の友だち` : "待っています…";
+      peerText.nodeValue = connected
+        ? remoteCharacterId
+          ? `${getCharacterDefinition(remoteCharacterId).name}と対戦中`
+          : `${roleLabel(oppositeRole(session.role))}の友だち`
+        : "待っています…";
       participantCard.classList.toggle("has-peer", connected);
       hint.firstChild!.textContent = connected
         ? "左右を細かく切り返してモーション連打"
@@ -500,6 +481,23 @@ export class App {
     form.addEventListener("submit", (event) => event.preventDefault());
     screen.append(header, intro, form, footer);
     this.root.append(screen);
+  }
+
+  private loadSelectedCharacter(): CharacterId {
+    try {
+      const stored = localStorage.getItem(CHARACTER_STORAGE_KEY);
+      return isCharacterId(stored) ? stored : DEFAULT_CHARACTER_ID;
+    } catch {
+      return DEFAULT_CHARACTER_ID;
+    }
+  }
+
+  private saveSelectedCharacter(characterId: CharacterId): void {
+    try {
+      localStorage.setItem(CHARACTER_STORAGE_KEY, characterId);
+    } catch {
+      // Private browsing or storage limits should not block room entry.
+    }
   }
 
   private async copyRoomCode(roomCode: string): Promise<void> {

@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { DEFAULT_CHARACTER_ID, isCharacterId, type CharacterId } from "../characters";
 import type { PlayerRole, PlayerState, PresenceState } from "../types";
 import { AvatarRig } from "./avatar";
 import { FloatingStick } from "./floatingStick";
@@ -9,7 +10,9 @@ interface GameOptions {
   mount: HTMLElement;
   overlay: HTMLElement;
   role: PlayerRole;
+  characterId: CharacterId;
   onLocalState: (state: PlayerState) => void;
+  onRemoteCharacter?: (characterId: CharacterId) => void;
   onPerformanceMode?: (mode: "full" | "reduced") => void;
 }
 
@@ -24,7 +27,7 @@ function oppositeRole(role: PlayerRole): PlayerRole {
   return role === "host" ? "guest" : "host";
 }
 
-function defaultState(role: PlayerRole): PlayerState {
+function defaultState(role: PlayerRole, characterId: CharacterId = DEFAULT_CHARACTER_ID): PlayerState {
   return {
     x: 0,
     z: role === "host" ? 1.65 : -1.65,
@@ -33,6 +36,7 @@ function defaultState(role: PlayerRole): PlayerState {
     motion: "idle",
     motionSequence: 0,
     clientTime: performance.now(),
+    characterId,
   };
 }
 
@@ -199,7 +203,7 @@ export class TauntGame {
   private readonly camera: THREE.PerspectiveCamera;
   private readonly timer = new THREE.Timer();
   private readonly localAvatar: AvatarRig;
-  private readonly remoteAvatar: AvatarRig;
+  private remoteAvatar: AvatarRig;
   private readonly controller = new LocomotionController();
   private readonly remoteInterpolator: RemoteInterpolator;
   private readonly stick: FloatingStick;
@@ -213,6 +217,10 @@ export class TauntGame {
   private remoteConnected = false;
   private frameSamples: number[] = [];
   private performanceMode: "full" | "reduced" = "full";
+  private readonly localCharacterId: CharacterId;
+  private remoteCharacterId: CharacterId = DEFAULT_CHARACTER_ID;
+  private remoteCharacterAnnounced = false;
+  private readonly onRemoteCharacter: ((characterId: CharacterId) => void) | undefined;
   private readonly onPerformanceMode: ((mode: "full" | "reduced") => void) | undefined;
 
   constructor(options: GameOptions) {
@@ -220,13 +228,15 @@ export class TauntGame {
     this.overlay = options.overlay;
     this.timer.connect(document);
     this.role = options.role;
+    this.localCharacterId = options.characterId;
     this.onLocalState = options.onLocalState;
+    this.onRemoteCharacter = options.onRemoteCharacter;
     this.onPerformanceMode = options.onPerformanceMode;
 
-    const localSpawn = defaultState(this.role);
+    const localSpawn = defaultState(this.role, this.localCharacterId);
     const remoteSpawn = defaultState(oppositeRole(this.role));
     this.controller.reset(localSpawn.x, localSpawn.z, localSpawn.yaw);
-    this.lastLocalState = this.controller.snapshot(performance.now());
+    this.lastLocalState = this.withLocalCharacter(this.controller.snapshot(performance.now()));
     this.remoteInterpolator = new RemoteInterpolator(remoteSpawn);
 
     this.renderer = new THREE.WebGLRenderer({
@@ -258,8 +268,8 @@ export class TauntGame {
 
     addPlatform(this.scene);
 
-    this.localAvatar = new AvatarRig(this.role);
-    this.remoteAvatar = new AvatarRig(oppositeRole(this.role));
+    this.localAvatar = new AvatarRig(this.role, this.localCharacterId);
+    this.remoteAvatar = new AvatarRig(oppositeRole(this.role), this.remoteCharacterId);
     this.scene.add(this.localAvatar.root, this.remoteAvatar.root);
     this.remoteAvatar.root.visible = false;
 
@@ -276,7 +286,7 @@ export class TauntGame {
     this.stick = new FloatingStick(this.renderer.domElement, this.overlay, {
       activationDistance: 9,
       onPress: () => {
-        const state = this.controller.triggerRacketSwing(performance.now());
+        const state = this.withLocalCharacter(this.controller.triggerRacketSwing(performance.now()));
         this.lastLocalState = state;
         this.sendAccumulator = 0;
         this.onLocalState({ ...state });
@@ -304,7 +314,16 @@ export class TauntGame {
   }
 
   applyRemoteState(state: PlayerState): void {
-    this.remoteInterpolator.push(state);
+    const characterId = isCharacterId(state.characterId)
+      ? state.characterId
+      : this.remoteCharacterId;
+    if (characterId !== this.remoteCharacterId) {
+      this.replaceRemoteAvatar(characterId);
+    } else if (!this.remoteCharacterAnnounced) {
+      this.remoteCharacterAnnounced = true;
+      this.onRemoteCharacter?.(characterId);
+    }
+    this.remoteInterpolator.push({ ...state, characterId });
     this.remoteConnected = true;
     this.remoteAvatar.root.visible = true;
   }
@@ -367,7 +386,9 @@ export class TauntGame {
       x: stick.x * cameraSign,
       y: stick.y * cameraSign,
     };
-    this.lastLocalState = this.controller.update(dt, cameraRelativeInput, now);
+    this.lastLocalState = this.withLocalCharacter(
+      this.controller.update(dt, cameraRelativeInput, now),
+    );
 
     this.localAvatar.root.position.set(this.lastLocalState.x, 0, this.lastLocalState.z);
     this.localAvatar.root.rotation.y = this.lastLocalState.yaw;
@@ -390,6 +411,28 @@ export class TauntGame {
     this.samplePerformance(rawDt);
     this.renderer.render(this.scene, this.camera);
   };
+
+  private withLocalCharacter(state: PlayerState): PlayerState {
+    return { ...state, characterId: this.localCharacterId };
+  }
+
+  private replaceRemoteAvatar(characterId: CharacterId): void {
+    const previous = this.remoteAvatar;
+    const position = previous.root.position.clone();
+    const yaw = previous.root.rotation.y;
+    const visible = previous.root.visible;
+    this.scene.remove(previous.root);
+    previous.dispose();
+
+    this.remoteAvatar = new AvatarRig(oppositeRole(this.role), characterId);
+    this.remoteAvatar.root.position.copy(position);
+    this.remoteAvatar.root.rotation.y = yaw;
+    this.remoteAvatar.root.visible = visible;
+    this.scene.add(this.remoteAvatar.root);
+    this.remoteCharacterId = characterId;
+    this.remoteCharacterAnnounced = true;
+    this.onRemoteCharacter?.(characterId);
+  }
 
   private createBubble(role: PlayerRole): BubbleSlot {
     const element = document.createElement("div");

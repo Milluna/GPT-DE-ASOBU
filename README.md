@@ -162,3 +162,13 @@ The deployable TypeScript source lives directly at the repository root on this b
 - Racket wind-up now travels behind the avatar and strikes toward its visible front.
 - Run and sandori use fixed-rate leg loops driven by input motion, not realized displacement.
 - Sandori remains active while circling the stick into the center net or stage boundary.
+## v2.0 キャラクター選択と同期アバター
+
+- タイトル画面を全面刷新し、ルミ／ミオ／セナの3人から選んで入室できるようにしました。
+- 選択キャラクターは端末内へ保存され、部屋作成・番号入室・操作テストのすべてへ引き継がれます。
+- キャラクターIDを位置・モーション状態と一緒にWebSocket同期し、相手側の3Dアバターと参加者表示にも反映します。
+- 3人は配色だけでなく、サイドポニー／ボブ／ツインテールのシルエット差を持つ完全オリジナルのプロシージャルアバターです。
+- 同じキャラクター同士でもホスト／ゲストの足元リングで判別できます。
+
+このv2.0では、外部の既存ゲーム資産を使用せず、タイトル用の高密度CSSアートとThree.jsの軽量トゥーンモデルを同じキャラクター定義から生成します。将来GLBへ差し替える場合も、キャラクターIDと通信プロトコルはそのまま利用できます。
+
