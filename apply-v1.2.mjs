@@ -19,6 +19,18 @@ replaceOnce(
   "boundaryX: 4.12, boundaryZ: 4.85,",
 );
 
+// The old acceleration test drove directly into the new net and correctly stopped at it.
+// Keep acceleration coverage independent from collision by testing a lateral run instead.
+replaceOnce(
+  "tests/locomotion.test.ts",
+  `    let now = step(controller, { x: 0, y: 1 }, 30);
+    expect(controller.speed).toBeGreaterThan(4);
+    expect(controller.z).toBeLessThan(1.65);`,
+  `    let now = step(controller, { x: 1, y: 0 }, 30);
+    expect(controller.speed).toBeGreaterThan(4);
+    expect(controller.x).toBeGreaterThan(1);`,
+);
+
 // Add a short solid collision strip at z=0, leaving generous passages at both sides.
 replaceOnce(
   "src/game/locomotion.ts",
@@ -42,6 +54,27 @@ replaceOnce(
     }
     this.x = nextX;
     this.z = nextZ;`,
+);
+
+// Regression coverage for the center wall and its intentionally open side passages.
+replaceOnce(
+  "tests/locomotion.test.ts",
+  `  it("keeps the player inside the stage boundary", () => {`,
+  `  it("blocks a straight crossing through the middle of the net", () => {
+    const controller = new LocomotionController();
+    step(controller, { x: 0, y: 1 }, 120);
+    expect(controller.z).toBeGreaterThanOrEqual(0.34 - 1e-6);
+    expect(controller.z).toBeLessThanOrEqual(0.34 + 1e-6);
+  });
+
+  it("allows crossing through an open side of the net", () => {
+    const controller = new LocomotionController();
+    controller.reset(3.1, 1.65, Math.PI);
+    step(controller, { x: 0, y: 1 }, 120);
+    expect(controller.z).toBeLessThan(-0.5);
+  });
+
+  it("keeps the player inside the stage boundary", () => {`,
 );
 
 // Add a transparent, abbreviated center net with visible frame and open side passages.
@@ -118,4 +151,4 @@ replaceOnce(
       racketZ = t < 0.22 ? 0.92 * p : -1.28 * p;`,
 );
 
-console.log("Applied AORI ROOM v1.2 camera, net, collision, and swing patch");
+console.log("Applied AORI ROOM v1.2 camera, net, collision, swing, and regression-test patch");
