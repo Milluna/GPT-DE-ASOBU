@@ -1,6 +1,7 @@
 name: Apply v1.3 animation fixes
 
 on:
+  workflow_dispatch:
   push:
     branches: [main]
     paths:
@@ -39,112 +40,101 @@ jobs:
             }
             write(path, source.replace(from, to));
           };
+          const lines = (...values) => values.join("\n");
 
           replaceOnce(
             "src/game/avatar.ts",
-            `    const speed01 = clamp(state.speed / 4.85, 0, 1);
-              this.stridePhase += dt * (2.2 + state.speed * 3.1);
-              const stride = Math.sin(this.stridePhase);
-              const secondaryStride = Math.sin(this.stridePhase + Math.PI / 2);`,
-            `    const speed01 = clamp(state.speed / 4.85, 0, 1);
-              const fixedLocomotionLoop = state.motion === "run" || state.motion === "sandori";
-              const locomotionEnergy = fixedLocomotionLoop ? 1 : speed01;
-              const strideRate = state.motion === "sandori" ? 15.8 : state.motion === "run" ? 13.4 : 2.2;
-              this.stridePhase += dt * strideRate;
-              const stride = Math.sin(this.stridePhase);
-              const secondaryStride = Math.sin(this.stridePhase + Math.PI / 2);`,
-          );
-
-          replaceOnce(
-            "src/game/avatar.ts",
-            `      rightArmX = t < 0.22 ? -1.12 * p : 1.24 * p;
-                  rightArmZ = t < 0.22 ? 0.82 * p : -0.92 * p;
-                  racketX = t < 0.22 ? -1.0 * p : 1.2 * p;`,
-            `      // The arm extends down the local -Y axis. Positive X rotation sends the hand
-                  // toward local -Z (behind the character); negative X sends it toward +Z (front).
-                  rightArmX = t < 0.22 ? 1.12 * p : -1.24 * p;
-                  rightArmZ = t < 0.22 ? 0.82 * p : -0.92 * p;
-                  racketX = t < 0.22 ? 1.0 * p : -1.2 * p;`,
+            lines(
+              "    const speed01 = clamp(state.speed / 4.85, 0, 1);",
+              "    this.stridePhase += dt * (2.2 + state.speed * 3.1);",
+            ),
+            lines(
+              "    const speed01 = clamp(state.speed / 4.85, 0, 1);",
+              '    const fixedLocomotionLoop = state.motion === "run" || state.motion === "sandori";',
+              "    const locomotionEnergy = fixedLocomotionLoop ? 1 : speed01;",
+              '    const strideRate = state.motion === "sandori" ? 15.8 : state.motion === "run" ? 13.4 : 2.2;',
+              "    this.stridePhase += dt * strideRate;",
+            ),
           );
 
           replaceOnce(
             "src/game/avatar.ts",
-            `    } else if (state.motion === "run") {
-                  bodyY += Math.abs(secondaryStride) * 0.035 * speed01;
-                  torsoX = 0.12 * speed01;
-                  torsoZ = clamp(-this.smoothedTurnRate * 0.022, -0.16, 0.16);
-                  headZ = -torsoZ * 0.35;
-                  leftLegX = stride * 0.72 * speed01;
-                  rightLegX = -stride * 0.72 * speed01;
-                  leftArmX = -stride * 0.48 * speed01;
-                  rightArmX = stride * 0.48 * speed01;
-                  skirtZ = torsoZ * 0.3;`,
-            `    } else if (state.motion === "run") {
-                  // Intent drives a full, fixed locomotion loop even when collision prevents displacement.
-                  bodyY += Math.abs(secondaryStride) * 0.035;
-                  torsoX = 0.12;
-                  torsoZ = clamp(-this.smoothedTurnRate * 0.022, -0.16, 0.16);
-                  headZ = -torsoZ * 0.35;
-                  leftLegX = stride * 0.72;
-                  rightLegX = -stride * 0.72;
-                  leftArmX = -stride * 0.48;
-                  rightArmX = stride * 0.48;
-                  skirtZ = torsoZ * 0.3;`,
+            "      rightArmX = t < 0.22 ? -1.12 * p : 1.24 * p;",
+            lines(
+              "      // Positive X moves the hanging hand toward local -Z (behind); negative X moves it toward +Z (front).",
+              "      rightArmX = t < 0.22 ? 1.12 * p : -1.24 * p;",
+            ),
           );
+          replaceOnce(
+            "src/game/avatar.ts",
+            "      racketX = t < 0.22 ? -1.0 * p : 1.2 * p;",
+            "      racketX = t < 0.22 ? 1.0 * p : -1.2 * p;",
+          );
+
+          const fixedRunLines = [
+            ["      bodyY += Math.abs(secondaryStride) * 0.035 * speed01;", "      bodyY += Math.abs(secondaryStride) * 0.035;"],
+            ["      torsoX = 0.12 * speed01;", "      torsoX = 0.12;"],
+            ["      leftLegX = stride * 0.72 * speed01;", "      leftLegX = stride * 0.72;"],
+            ["      rightLegX = -stride * 0.72 * speed01;", "      rightLegX = -stride * 0.72;"],
+            ["      leftArmX = -stride * 0.48 * speed01;", "      leftArmX = -stride * 0.48;"],
+            ["      rightArmX = stride * 0.48 * speed01;", "      rightArmX = stride * 0.48;"],
+          ];
+          for (const [from, to] of fixedRunLines) replaceOnce("src/game/avatar.ts", from, to);
 
           replaceOnce(
             "src/game/avatar.ts",
-            `      Math.sin(this.elapsed * 4.4 + this.stridePhase * 0.28) * (0.06 + speed01 * 0.17) -`,
-            `      Math.sin(this.elapsed * 4.4 + this.stridePhase * 0.28) * (0.06 + locomotionEnergy * 0.17) -`,
+            "      Math.sin(this.elapsed * 4.4 + this.stridePhase * 0.28) * (0.06 + speed01 * 0.17) -",
+            "      Math.sin(this.elapsed * 4.4 + this.stridePhase * 0.28) * (0.06 + locomotionEnergy * 0.17) -",
           );
           replaceOnce(
             "src/game/avatar.ts",
-            `      0.06 + Math.abs(stride) * speed01 * 0.1,`,
-            `      0.06 + Math.abs(stride) * locomotionEnergy * 0.1,`,
+            "      0.06 + Math.abs(stride) * speed01 * 0.1,",
+            "      0.06 + Math.abs(stride) * locomotionEnergy * 0.1,",
           );
           replaceOnce(
             "src/game/avatar.ts",
-            `    const shadowScale = 1 + speed01 * 0.13;
-              this.shadow.scale.set(
-                damp(this.shadow.scale.x, shadowScale, 10, dt),
-                damp(this.shadow.scale.y, 1 - speed01 * 0.08, 10, dt),`,
-            `    const shadowScale = 1 + locomotionEnergy * 0.13;
-              this.shadow.scale.set(
-                damp(this.shadow.scale.x, shadowScale, 10, dt),
-                damp(this.shadow.scale.y, 1 - locomotionEnergy * 0.08, 10, dt),`,
+            "    const shadowScale = 1 + speed01 * 0.13;",
+            "    const shadowScale = 1 + locomotionEnergy * 0.13;",
+          );
+          replaceOnce(
+            "src/game/avatar.ts",
+            "      damp(this.shadow.scale.y, 1 - speed01 * 0.08, 10, dt),",
+            "      damp(this.shadow.scale.y, 1 - locomotionEnergy * 0.08, 10, dt),",
           );
 
           replaceOnce(
             "src/game/locomotion.ts",
-            `    const circular = hasInput && magnitude > 0.5 && this.speed > 1.15 && Math.abs(this.angularVelocity) >= this.tuning.sandoriAngularVelocity;`,
-            `    // Sandori is an input gesture, not a measure of realized displacement. Keep it
-                // active when the player is deliberately circling the stick into a wall or net.
-                const circular = hasInput && magnitude > 0.5 && Math.abs(this.angularVelocity) >= this.tuning.sandoriAngularVelocity;`,
+            "    const circular = hasInput && magnitude > 0.5 && this.speed > 1.15 && Math.abs(this.angularVelocity) >= this.tuning.sandoriAngularVelocity;",
+            lines(
+              "    // Sandori is an input gesture, not a measure of realized displacement.",
+              "    // Keep it active while deliberately circling the stick into a wall or net.",
+              "    const circular = hasInput && magnitude > 0.5 && Math.abs(this.angularVelocity) >= this.tuning.sandoriAngularVelocity;",
+            ),
           );
 
-          replaceOnce(
-            "tests/locomotion.test.ts",
-            `  it("blocks a straight crossing through the middle of the net", () => {`,
-            `  it("keeps sandori active while circling the stick into the center net", () => {
-                const controller = new LocomotionController({ startDuration: 0.05 });
-                controller.reset(0, 0.34, Math.PI);
-                let now = 0;
-                let lastMotion = controller.motion;
-
-                for (let frame = 0; frame < 48; frame += 1) {
-                  const x = frame % 2 === 0 ? 0.04 : -0.04;
-                  const y = Math.sqrt(1 - x * x);
-                  now += 1000 / 60;
-                  lastMotion = controller.update(1 / 60, { x, y }, now).motion;
-                }
-
-                expect(controller.z).toBeCloseTo(0.34, 5);
-                expect(controller.speed).toBeLessThan(0.3);
-                expect(lastMotion).toBe("sandori");
-              });
-
-              it("blocks a straight crossing through the middle of the net", () => {`,
+          const netTestAnchor = '  it("blocks a straight crossing through the middle of the net", () => {';
+          const blockedSandoriTest = lines(
+            '  it("keeps sandori active while circling the stick into the center net", () => {',
+            "    const controller = new LocomotionController({ startDuration: 0.05 });",
+            "    controller.reset(0, 0.34, Math.PI);",
+            "    let now = 0;",
+            "    let lastMotion = controller.motion;",
+            "",
+            "    for (let frame = 0; frame < 48; frame += 1) {",
+            "      const x = frame % 2 === 0 ? 0.04 : -0.04;",
+            "      const y = Math.sqrt(1 - x * x);",
+            "      now += 1000 / 60;",
+            "      lastMotion = controller.update(1 / 60, { x, y }, now).motion;",
+            "    }",
+            "",
+            "    expect(controller.z).toBeCloseTo(0.34, 5);",
+            "    expect(controller.speed).toBeLessThan(0.3);",
+            '    expect(lastMotion).toBe("sandori");',
+            "  });",
+            "",
+            netTestAnchor,
           );
+          replaceOnce("tests/locomotion.test.ts", netTestAnchor, blockedSandoriTest);
 
           const packagePath = "package.json";
           const pkg = JSON.parse(read(packagePath));
@@ -157,7 +147,11 @@ jobs:
           if (!readme.includes(marker)) {
             write(
               readmePath,
-              `${readme.trimEnd()}\n\n${marker}\n\n- Racket wind-up now travels behind the avatar and strikes toward its visible front.\n- Run and sandori use fixed-rate leg loops driven by input motion, not realized displacement.\n- Sandori remains active while circling the stick into the center net or stage boundary.\n`,
+              readme.trimEnd() +
+                "\n\n" + marker +
+                "\n\n- Racket wind-up now travels behind the avatar and strikes toward its visible front." +
+                "\n- Run and sandori use fixed-rate leg loops driven by input motion, not realized displacement." +
+                "\n- Sandori remains active while circling the stick into the center net or stage boundary.\n",
             );
           }
 
@@ -184,6 +178,10 @@ jobs:
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/game/avatar.ts src/game/locomotion.ts tests/locomotion.test.ts package.json README.md bun.lock
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No source changes to commit."
+            exit 0
+          fi
           git commit -m "Fix racket direction and use fixed locomotion loops"
           git push origin HEAD:source-direct-v1.2
