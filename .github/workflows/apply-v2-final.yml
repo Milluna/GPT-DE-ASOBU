@@ -58,7 +58,10 @@ jobs:
 
       - name: Type-check and build production bundle
         working-directory: app
-        run: bun run build:app
+        shell: bash
+        run: |
+          set -o pipefail
+          bun run build:app 2>&1 | tee "$RUNNER_TEMP/v2-build.log"
 
       - name: Commit verified source update
         working-directory: app
@@ -99,12 +102,18 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p release/v2.0
-          printf 'status=%s\nrun_id=%s\ntrigger_sha=%s\nrecorded_at=%s\n' \
-            "$RELEASE_STATUS" \
-            "$RELEASE_RUN_ID" \
-            "$RELEASE_SHA" \
-            "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
-            > release/v2.0/status.txt
+          {
+            printf 'status=%s\nrun_id=%s\ntrigger_sha=%s\nrecorded_at=%s\n' \
+              "$RELEASE_STATUS" \
+              "$RELEASE_RUN_ID" \
+              "$RELEASE_SHA" \
+              "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            if [[ -f "$RUNNER_TEMP/v2-build.log" ]]; then
+              printf '\n--- build log tail ---\n'
+              tail -n 180 "$RUNNER_TEMP/v2-build.log" \
+                | sed -E 's/\x1B\[[0-9;]*[mK]//g'
+            fi
+          } > release/v2.0/status.txt
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add release/v2.0/status.txt
