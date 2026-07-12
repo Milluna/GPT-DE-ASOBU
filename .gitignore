@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.wrangler/
+.DS_Store
+*.log
+.playwright-*.mjs
+.network-check.mjs
+.wrangler/
+.dev.vars
+
+*.tsbuildinfo

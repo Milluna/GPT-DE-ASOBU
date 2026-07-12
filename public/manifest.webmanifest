@@ -1,0 +1,22 @@
+{
+  "name": "AORI ROOM Prototype",
+  "short_name": "AORI ROOM",
+  "description": "2人で自由に動いて定型メッセージを飛ばせるスマホ向け3Dルーム",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#151425",
+  "theme_color": "#151425",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
