@@ -1,4 +1,12 @@
 status=failure
-run_id=29197624705
-trigger_sha=6a39ea96c88f9439d49cbd7632504e28879706d3
-recorded_at=2026-07-12T15:09:22Z
+run_id=29197738066
+trigger_sha=9b38b1cc783d81d42381023dace5bcab79a32aaa
+recorded_at=2026-07-12T15:12:35Z
+
+--- build log tail ---
+$ tsc -b --pretty false && vite build
+tests/characters.test.ts(7,8): error TS6307: File '/home/runner/work/GPT-DE-ASOBU/GPT-DE-ASOBU/app/src/characters.ts' is not listed within the file list of project '/home/runner/work/GPT-DE-ASOBU/GPT-DE-ASOBU/app/tsconfig.tests.json'. Projects must list all files or use an 'include' pattern.
+  The file is in the program because:
+    Imported via "../src/characters" from file '/home/runner/work/GPT-DE-ASOBU/GPT-DE-ASOBU/app/tests/characters.test.ts'
+    Imported via "./characters" from file '/home/runner/work/GPT-DE-ASOBU/GPT-DE-ASOBU/app/src/types.ts'
+error: script "build:app" exited with code 1
