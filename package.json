@@ -1,0 +1,8 @@
+{
+  "name": "aori-room-cloudflare-deploy",
+  "private": true,
+  "scripts": {
+    "build": "rm -rf app && mkdir app && unzip -q aori-room-source.zip -d app && cd app && npm ci && npm run build",
+    "deploy": "cd app && npx wrangler deploy"
+  }
+}
