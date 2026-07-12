@@ -43,6 +43,18 @@ jobs:
       - name: Apply character-selection release
         run: node "$RUNNER_TEMP/apply-v2.0.mjs" app
 
+      - name: Include character registry in test project
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import { readFileSync, writeFileSync } from "node:fs";
+          const path = "app/tsconfig.tests.json";
+          const config = JSON.parse(readFileSync(path, "utf8"));
+          config.include = Array.from(new Set([...(config.include ?? []), "src/characters.ts"]));
+          writeFileSync(path, JSON.stringify(config, null, 2) + "\n");
+          NODE
+
       - name: Set up Bun
         uses: oven-sh/setup-bun@v2
         with:
@@ -83,6 +95,7 @@ jobs:
             src/game/game.ts \
             src/game/remoteInterpolator.ts \
             tests/characters.test.ts \
+            tsconfig.tests.json \
             worker/index.ts
           if git diff --cached --quiet; then
             echo "Source branch is already at v2.0"
