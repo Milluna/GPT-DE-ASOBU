@@ -1,0 +1,35 @@
+{
+  "recordedAt": "2026-07-13T12:48:37.062Z",
+  "endpoints": [
+    {
+      "path": "/accounts/d068687e2a79aee7f87e031a93b6d54b/workers/subdomain",
+      "status": 400,
+      "contentType": "application/json",
+      "body": "{\"success\":false,\"errors\":[{\"code\":9106,\"message\":\"Missing X-Auth-Key, X-Auth-Email or Authorization headers\"}],\"messages\":[],\"result\":null}\n"
+    },
+    {
+      "path": "/accounts/d068687e2a79aee7f87e031a93b6d54b/workers/services/gpt-de-asobu",
+      "status": 400,
+      "contentType": "application/json",
+      "body": "{\"success\":false,\"errors\":[{\"code\":9106,\"message\":\"Missing X-Auth-Key, X-Auth-Email or Authorization headers\"}],\"messages\":[],\"result\":null}\n"
+    },
+    {
+      "path": "/accounts/d068687e2a79aee7f87e031a93b6d54b/workers/services/gpt-de-asobu/environments/production",
+      "status": 400,
+      "contentType": "application/json",
+      "body": "{\"success\":false,\"errors\":[{\"code\":9106,\"message\":\"Missing X-Auth-Key, X-Auth-Email or Authorization headers\"}],\"messages\":[],\"result\":null}\n"
+    },
+    {
+      "path": "/accounts/d068687e2a79aee7f87e031a93b6d54b/workers/services/gpt-de-asobu/environments/production/routes",
+      "status": 400,
+      "contentType": "application/json",
+      "body": "{\"success\":false,\"errors\":[{\"code\":9106,\"message\":\"Missing X-Auth-Key, X-Auth-Email or Authorization headers\"}],\"messages\":[],\"result\":null}\n"
+    },
+    {
+      "path": "/accounts/d068687e2a79aee7f87e031a93b6d54b/workers/scripts/gpt-de-asobu/settings",
+      "status": 400,
+      "contentType": "application/json",
+      "body": "{\"success\":false,\"errors\":[{\"code\":9106,\"message\":\"Missing X-Auth-Key, X-Auth-Email or Authorization headers\"}],\"messages\":[],\"result\":null}\n"
+    }
+  ]
+}
