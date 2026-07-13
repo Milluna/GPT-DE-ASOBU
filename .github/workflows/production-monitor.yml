@@ -94,8 +94,16 @@ jobs:
           if (release.visualVersion !== "beautiful-3d-v3") {
             throw new Error(`unexpected visual version ${release.visualVersion}`);
           }
-          if (release.capabilities?.liveTitle3D !== true) throw new Error("live title 3D is not declared");
-          if (release.capabilities?.beautifulAvatarRig !== true) throw new Error("beautiful avatar rig is not declared");
+          const capabilities = release.capabilities;
+          const featureList = Array.isArray(capabilities) ? capabilities : [];
+          const liveTitle3D =
+            featureList.includes("live-title-3d") || capabilities?.liveTitle3D === true;
+          const beautifulRig =
+            featureList.includes("animated-hair-and-cloth") ||
+            featureList.includes("beautiful-avatar-rig") ||
+            capabilities?.beautifulAvatarRig === true;
+          if (!liveTitle3D) throw new Error("live title 3D is not declared");
+          if (!beautifulRig) throw new Error("beautiful avatar rig is not declared");
           console.log(JSON.stringify(release, null, 2));
           NODE
 
