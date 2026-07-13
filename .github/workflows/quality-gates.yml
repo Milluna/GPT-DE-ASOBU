@@ -40,6 +40,9 @@ jobs:
       - name: Run unit tests
         run: bun run test
 
+      - name: Test production URL resolver
+        run: node --test scripts/resolve-production-url.test.mjs
+
       - name: Type-check and build
         env:
           AORI_BUILD_SHA: ${{ github.sha }}
