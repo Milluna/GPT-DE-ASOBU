@@ -10,6 +10,9 @@ on:
 permissions:
   contents: read
   deployments: read
+  checks: read
+  statuses: read
+  pages: read
 
 concurrency:
   group: aori-quality-${{ github.workflow }}-${{ github.ref }}
@@ -124,6 +127,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           SOURCE_REF: source-direct-v1.2
+          SOURCE_SHA: ${{ github.sha }}
           WAIT_FOR_DISCOVERY_MS: 300000
           DISCOVERY_POLL_MS: 10000
         run: node scripts/resolve-production-url.mjs
