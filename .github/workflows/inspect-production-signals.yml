@@ -36,7 +36,7 @@ jobs:
             accept: 'application/vnd.github+json',
             authorization: `Bearer ${token}`,
             'x-github-api-version': '2022-11-28',
-            'user-agent': 'aori-room-signal-inspector/1',
+            'user-agent': 'aori-room-signal-inspector/2',
           };
           async function get(path, allow404 = false) {
             const response = await fetch(`https://api.github.com${path}`, { headers });
@@ -45,7 +45,7 @@ jobs:
             return response.json();
           }
           function urls(value, out = [], depth = 0) {
-            if (depth > 8 || value == null) return out;
+            if (depth > 10 || value == null) return out;
             if (typeof value === 'string') {
               for (const match of value.matchAll(/https:\/\/[^\s"'<>]+/g)) out.push(match[0]);
             } else if (Array.isArray(value)) {
@@ -77,19 +77,38 @@ jobs:
             });
           }
           const checks = await get(`/repos/${repo}/commits/${sha}/check-runs?filter=latest&per_page=100`);
-          result.checkRuns = (checks.check_runs ?? []).map((check) => ({
-            name: check.name,
-            app: check.app?.slug ?? check.app?.name ?? null,
-            status: check.status,
-            conclusion: check.conclusion,
-            detailsUrl: check.details_url,
-            output: {
-              title: check.output?.title ?? null,
-              summary: check.output?.summary ?? null,
-              text: check.output?.text ?? null,
-            },
-            urls: [...new Set(urls(check))],
-          }));
+          result.checkRuns = [];
+          for (const check of checks.check_runs ?? []) {
+            const annotations = await get(`/repos/${repo}/check-runs/${check.id}/annotations?per_page=100`);
+            result.checkRuns.push({
+              id: check.id,
+              externalId: check.external_id ?? null,
+              name: check.name,
+              app: check.app?.slug ?? check.app?.name ?? null,
+              status: check.status,
+              conclusion: check.conclusion,
+              detailsUrl: check.details_url,
+              startedAt: check.started_at,
+              completedAt: check.completed_at,
+              output: {
+                title: check.output?.title ?? null,
+                summary: check.output?.summary ?? null,
+                text: check.output?.text ?? null,
+                annotationsCount: check.output?.annotations_count ?? 0,
+              },
+              annotations: annotations.map((annotation) => ({
+                path: annotation.path,
+                startLine: annotation.start_line,
+                endLine: annotation.end_line,
+                level: annotation.annotation_level,
+                message: annotation.message,
+                title: annotation.title,
+                rawDetails: annotation.raw_details,
+                urls: [...new Set(urls(annotation))],
+              })),
+              urls: [...new Set(urls(check))],
+            });
+          }
           const statuses = await get(`/repos/${repo}/commits/${sha}/statuses?per_page=100`);
           result.statuses = statuses.map((status) => ({
             state: status.state,
@@ -134,5 +153,6 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add production/beautiful-v3/signals.json
+          if git diff --cached --quiet; then exit 0; fi
           git commit -m "Record production deployment signals"
           git push origin HEAD:production-evidence
