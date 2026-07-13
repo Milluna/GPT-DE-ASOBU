@@ -1,0 +1,15 @@
+{
+  "status": "failure",
+  "liveUrl": null,
+  "staticCommitSha": null,
+  "sourceSha": null,
+  "version": "3.0.0",
+  "visualVersion": "beautiful-3d-v3",
+  "transport": "PeerJS WebRTC data channel",
+  "title3D": false,
+  "twoPlayerP2P": false,
+  "browser": "WebKit iPhone 13 viewport",
+  "workflowRunId": "29253871759",
+  "workflowRunUrl": "https://github.com/Milluna/GPT-DE-ASOBU/actions/runs/29253871759",
+  "verifiedAt": "2026-07-13T13:28:14.235Z"
+}
