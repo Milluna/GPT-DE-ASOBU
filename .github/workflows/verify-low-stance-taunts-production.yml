@@ -24,7 +24,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: aori-low-stance-taunts-${{ github.ref }}
@@ -95,6 +95,7 @@ jobs:
           node-version: 22
 
       - name: Wait for this exact main revision and exercise realtime protocol
+        id: protocol
         env:
           EXPECTED_SHA: ${{ github.sha }}
           WAIT_FOR_RELEASE_MS: 900000
@@ -102,6 +103,7 @@ jobs:
         run: node scripts/network-smoke.mjs
 
       - name: Verify deployed taunt profile metadata
+        id: metadata
         shell: bash
         run: |
           set -euo pipefail
@@ -127,6 +129,7 @@ jobs:
           NODE
 
       - name: Capture live side-step and racket poses in iPhone WebKit
+        id: visual
         shell: bash
         run: |
           set -euo pipefail
@@ -196,5 +199,70 @@ jobs:
         with:
           name: low-stance-taunts-${{ github.sha }}
           path: production-artifacts/
-          if-no-files-found: error
+          if-no-files-found: warn
           retention-days: 30
+
+      - name: Check out status branch
+        if: always()
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: status-repo
+          fetch-depth: 0
+
+      - name: Publish durable production result
+        if: always()
+        shell: bash
+        env:
+          PROTOCOL_OUTCOME: ${{ steps.protocol.outcome }}
+          METADATA_OUTCOME: ${{ steps.metadata.outcome }}
+          VISUAL_OUTCOME: ${{ steps.visual.outcome }}
+          VERIFIED_SHA: ${{ github.sha }}
+          RUN_ID: ${{ github.run_id }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          cd status-repo
+          mkdir -p release/low-stance-taunts
+          node --input-type=module <<'NODE'
+          import { writeFileSync } from "node:fs";
+
+          let status = "success";
+          if (process.env.PROTOCOL_OUTCOME !== "success") status = "protocol_failure";
+          else if (process.env.METADATA_OUTCOME !== "success") status = "metadata_failure";
+          else if (process.env.VISUAL_OUTCOME !== "success") status = "webkit_motion_failure";
+
+          const result = {
+            status,
+            productionUrl: "https://gpt-de-asobu.ts9w5mc8ch.workers.dev",
+            mainSha: process.env.VERIFIED_SHA,
+            visualVersion: "beautiful-3d-v3",
+            tauntMotionProfile: "low-stance-taunts-v1",
+            protocolOutcome: process.env.PROTOCOL_OUTCOME || null,
+            metadataOutcome: process.env.METADATA_OUTCOME || null,
+            webkitMotionOutcome: process.env.VISUAL_OUTCOME || null,
+            workflowRunId: process.env.RUN_ID,
+            workflowRunUrl: `https://github.com/${process.env.REPOSITORY}/actions/runs/${process.env.RUN_ID}`,
+            verifiedAt: new Date().toISOString(),
+          };
+          writeFileSync(
+            "release/low-stance-taunts/status.json",
+            `${JSON.stringify(result, null, 2)}\n`,
+          );
+          NODE
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add release/low-stance-taunts/status.json
+          if git diff --cached --quiet; then
+            exit 0
+          fi
+          git commit -m "Record low-stance taunt production verification [skip ci]"
+          pushed=false
+          for attempt in 1 2 3; do
+            if git push origin HEAD:main; then
+              pushed=true
+              break
+            fi
+            git pull --rebase origin main
+          done
+          [[ "$pushed" == "true" ]] || { echo "Could not publish production result."; exit 1; }
