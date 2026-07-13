@@ -1,0 +1,218 @@
+name: Publish beautiful 3D static P2P production
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - src/network/**
+      - scripts/static-live.spec.mjs
+      - .github/workflows/static-live-production.yml
+  push:
+    branches: [main]
+    paths:
+      - package.json
+      - bun.lock
+      - src/**
+      - public/**
+      - index.html
+      - scripts/write-release-meta.mjs
+      - scripts/static-live.spec.mjs
+      - .github/workflows/static-live-production.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: aori-static-live-production
+  cancel-in-progress: false
+
+jobs:
+  build-and-publish:
+    name: Build, publish, and verify live P2P production
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.2.15
+
+      - name: Install locked dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Run source tests
+        run: bun run test
+
+      - name: Build a relative-path production bundle
+        id: source
+        shell: bash
+        run: |
+          set -euo pipefail
+          source_sha=$(git rev-parse HEAD)
+          echo "sha=$source_sha" >> "$GITHUB_OUTPUT"
+          AORI_BUILD_SHA="$source_sha" node scripts/write-release-meta.mjs
+          bunx tsc -b --pretty false
+          bunx vite build --base=./
+          test -s dist/index.html
+          test -s dist/release.json
+
+      - name: Upload PR build evidence
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: static-p2p-pr-build-${{ github.sha }}
+          path: dist/
+          retention-days: 7
+
+      - name: Publish immutable static release branch
+        if: github.event_name != 'pull_request'
+        id: publish
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp -a dist "$RUNNER_TEMP/static-dist"
+          publish_dir="$RUNNER_TEMP/aori-static-live"
+          rm -rf "$publish_dir"
+          git worktree add --detach "$publish_dir" HEAD
+          cd "$publish_dir"
+          git switch --orphan "live-build-${GITHUB_RUN_ID}"
+          git rm -rf .
+          cp -a "$RUNNER_TEMP/static-dist"/. .
+          cat > .nojekyll <<'EOF'
+          AORI ROOM beautiful 3D static production
+          EOF
+          git add -A
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Publish beautiful 3D static production"
+          live_sha=$(git rev-parse HEAD)
+          git push --force origin HEAD:live-beautiful-v3
+          echo "sha=$live_sha" >> "$GITHUB_OUTPUT"
+          echo "jsdelivr=https://cdn.jsdelivr.net/gh/${GITHUB_REPOSITORY}@${live_sha}/index.html" >> "$GITHUB_OUTPUT"
+          echo "githack=https://raw.githack.com/${GITHUB_REPOSITORY}/${live_sha}/index.html" >> "$GITHUB_OUTPUT"
+
+      - name: Resolve a live immutable CDN URL
+        if: github.event_name != 'pull_request'
+        id: live
+        shell: bash
+        env:
+          JSDELIVR_URL: ${{ steps.publish.outputs.jsdelivr }}
+          GITHACK_URL: ${{ steps.publish.outputs.githack }}
+        run: |
+          set -euo pipefail
+          for attempt in {1..60}; do
+            for candidate in "$JSDELIVR_URL" "$GITHACK_URL"; do
+              body=$(curl --fail --silent --show-error --location \
+                --header 'cache-control: no-cache' "$candidate" 2>/dev/null || true)
+              if grep -q 'AORI ROOM' <<< "$body"; then
+                echo "url=$candidate" >> "$GITHUB_OUTPUT"
+                echo "Live static production: $candidate"
+                exit 0
+              fi
+            done
+            sleep 5
+          done
+          echo "The immutable static release did not become reachable." >&2
+          exit 1
+
+      - name: Install WebKit test runtime
+        if: github.event_name != 'pull_request'
+        run: |
+          npm install --no-save --ignore-scripts @playwright/test@latest
+          npx playwright install --with-deps webkit
+
+      - name: Exercise two-player P2P in live iPhone-sized WebKit pages
+        if: github.event_name != 'pull_request'
+        id: browser_smoke
+        env:
+          LIVE_URL: ${{ steps.live.outputs.url }}
+        run: |
+          mkdir -p static-live-artifacts
+          npx playwright test scripts/static-live.spec.mjs \
+            --browser=webkit \
+            --workers=1 \
+            --reporter=line
+
+      - name: Upload live production evidence
+        if: always() && github.event_name != 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: static-p2p-live-${{ steps.publish.outputs.sha || github.run_id }}
+          path: static-live-artifacts/
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Record verified live URL on main
+        if: always() && github.event_name != 'pull_request'
+        shell: bash
+        env:
+          LIVE_URL: ${{ steps.live.outputs.url }}
+          LIVE_SHA: ${{ steps.publish.outputs.sha }}
+          SOURCE_SHA: ${{ steps.source.outputs.sha }}
+          BROWSER_OUTCOME: ${{ steps.browser_smoke.outcome }}
+          RUN_ID: ${{ github.run_id }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          git switch main
+          git pull --rebase origin main
+          mkdir -p release/static-live
+          node --input-type=module <<'NODE'
+          import { writeFileSync } from "node:fs";
+          const status = process.env.BROWSER_OUTCOME === "success" ? "success" : "failure";
+          const result = {
+            status,
+            liveUrl: process.env.LIVE_URL || null,
+            staticCommitSha: process.env.LIVE_SHA || null,
+            sourceSha: process.env.SOURCE_SHA || null,
+            version: "3.0.0",
+            visualVersion: "beautiful-3d-v3",
+            transport: "PeerJS WebRTC data channel",
+            title3D: process.env.BROWSER_OUTCOME === "success",
+            twoPlayerP2P: process.env.BROWSER_OUTCOME === "success",
+            browser: "WebKit iPhone 13 viewport",
+            workflowRunId: process.env.RUN_ID,
+            workflowRunUrl: `https://github.com/${process.env.REPOSITORY}/actions/runs/${process.env.RUN_ID}`,
+            verifiedAt: new Date().toISOString(),
+          };
+          writeFileSync("release/static-live/status.json", `${JSON.stringify(result, null, 2)}\n`);
+          NODE
+          git add release/static-live/status.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git diff --cached --quiet; then
+            exit 0
+          fi
+          git commit -m "Record static beautiful 3D live verification: ${BROWSER_OUTCOME} [skip ci]"
+          for attempt in 1 2 3; do
+            if git push origin HEAD:main; then
+              exit 0
+            fi
+            git pull --rebase origin main
+          done
+          exit 1
+
+      - name: Enforce verified live production
+        if: always() && github.event_name != 'pull_request'
+        shell: bash
+        env:
+          LIVE_URL: ${{ steps.live.outputs.url }}
+          BROWSER_OUTCOME: ${{ steps.browser_smoke.outcome }}
+        run: |
+          set -euo pipefail
+          [[ -n "$LIVE_URL" ]] || { echo "No public live URL was resolved."; exit 1; }
+          [[ "$BROWSER_OUTCOME" == "success" ]] || {
+            echo "The live two-browser WebKit verification failed."
+            exit 1
+          }
