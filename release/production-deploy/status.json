@@ -1,0 +1,12 @@
+{
+  "status": "missing_credentials",
+  "sourceSha": "f9edc1e9fbab377c5019901eeb205b30c4b6a2ec",
+  "productionUrl": null,
+  "discoverySource": null,
+  "deployOutcome": "skipped",
+  "verificationOutcome": "skipped",
+  "screenshotOutcome": "skipped",
+  "workflowRunId": "29243322044",
+  "workflowRunUrl": "https://github.com/Milluna/GPT-DE-ASOBU/actions/runs/29243322044",
+  "recordedAt": "2026-07-13T10:36:20.929Z"
+}
