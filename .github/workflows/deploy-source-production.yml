@@ -1,0 +1,234 @@
+name: Deploy verified AORI ROOM source
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/deploy-source-production.yml
+  workflow_dispatch:
+    inputs:
+      source_sha:
+        description: Optional source-direct-v1.2 commit SHA
+        required: false
+        type: string
+  workflow_run:
+    workflows: ["AORI ROOM quality gates"]
+    types: [completed]
+
+permissions:
+  contents: write
+  deployments: write
+
+concurrency:
+  group: aori-production-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Build, deploy, and verify production
+    if: >-
+      github.event_name != 'workflow_run' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.head_branch == 'source-direct-v1.2')
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Check out verified source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || inputs.source_sha || 'source-direct-v1.2' }}
+          path: app
+          fetch-depth: 1
+
+      - name: Resolve source revision
+        id: source
+        shell: bash
+        run: echo "sha=$(git -C app rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.2.15
+
+      - name: Install locked dependencies
+        working-directory: app
+        run: bun install --frozen-lockfile
+
+      - name: Re-run source verification
+        working-directory: app
+        run: |
+          set -euo pipefail
+          bun run test
+          node --test scripts/resolve-production-url-selftest.mjs
+
+      - name: Build release with source identity
+        working-directory: app
+        env:
+          AORI_BUILD_SHA: ${{ steps.source.outputs.sha }}
+        run: bun run build:app
+
+      - name: Detect Cloudflare deployment credentials
+        id: cloudflare-auth
+        shell: bash
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          if [[ -n "$CLOUDFLARE_API_TOKEN" && -n "$CLOUDFLARE_ACCOUNT_ID" ]]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+            echo "Cloudflare deployment credentials are configured."
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "::error::Cloudflare deployment requires repository secrets CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID."
+          fi
+
+      - name: Deploy Worker and static assets
+        id: deploy
+        if: steps.cloudflare-auth.outputs.available == 'true'
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: app
+          packageManager: bun
+          wranglerVersion: "4.110.0"
+          command: deploy
+          gitHubToken: ${{ github.token }}
+
+      - name: Resolve deployed production URL
+        id: production
+        if: steps.deploy.outcome == 'success'
+        env:
+          OVERRIDE_URL: ${{ steps.deploy.outputs.deployment-url }}
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          SOURCE_REF: source-direct-v1.2
+          WAIT_FOR_DISCOVERY_MS: 120000
+          DISCOVERY_POLL_MS: 5000
+        run: node app/scripts/resolve-production-url.mjs
+
+      - name: Exercise the deployed production protocol
+        id: production-smoke
+        if: steps.production.outcome == 'success'
+        env:
+          BASE_URL: ${{ steps.production.outputs.url }}
+          EXPECTED_SHA: ${{ steps.source.outputs.sha }}
+          WAIT_FOR_RELEASE_MS: 300000
+          RELEASE_POLL_MS: 5000
+        run: node app/scripts/network-smoke.mjs
+
+      - name: Capture deployed title on WebKit
+        id: screenshot
+        if: steps.production-smoke.outcome == 'success'
+        shell: bash
+        env:
+          BASE_URL: ${{ steps.production.outputs.url }}
+        run: |
+          set -euo pipefail
+          mkdir -p production-artifacts
+          npx --yes playwright@latest install --with-deps webkit
+          npx --yes playwright@latest screenshot \
+            --browser=webkit \
+            --device="iPhone 13" \
+            --wait-for-selector=".title-screen--v2" \
+            --wait-for-timeout=2500 \
+            "$BASE_URL" \
+            production-artifacts/title-iphone.png
+
+      - name: Upload deployment evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-deploy-${{ steps.source.outputs.sha || github.run_id }}
+          path: production-artifacts/
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Check out deployment status branch
+        if: always()
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: status-repo
+          fetch-depth: 0
+
+      - name: Publish deployment status
+        if: always()
+        shell: bash
+        env:
+          AUTH_AVAILABLE: ${{ steps.cloudflare-auth.outputs.available }}
+          DEPLOY_OUTCOME: ${{ steps.deploy.outcome }}
+          DISCOVERY_OUTCOME: ${{ steps.production.outcome }}
+          VERIFY_OUTCOME: ${{ steps.production-smoke.outcome }}
+          SCREENSHOT_OUTCOME: ${{ steps.screenshot.outcome }}
+          SOURCE_SHA: ${{ steps.source.outputs.sha }}
+          DEPLOYMENT_URL: ${{ steps.production.outputs.url || steps.deploy.outputs.deployment-url }}
+          DISCOVERY_SOURCE: ${{ steps.production.outputs.source }}
+          RUN_ID: ${{ github.run_id }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          cd status-repo
+          mkdir -p release/production-deploy
+          node --input-type=module <<'NODE'
+          import { writeFileSync } from "node:fs";
+
+          let status = "success";
+          if (process.env.AUTH_AVAILABLE !== "true") status = "missing_credentials";
+          else if (process.env.DEPLOY_OUTCOME !== "success") status = "deploy_failure";
+          else if (process.env.DISCOVERY_OUTCOME !== "success") status = "url_discovery_failure";
+          else if (process.env.VERIFY_OUTCOME !== "success") status = "production_verification_failure";
+          else if (process.env.SCREENSHOT_OUTCOME !== "success") status = "render_verification_failure";
+
+          const result = {
+            status,
+            sourceSha: process.env.SOURCE_SHA || null,
+            productionUrl: process.env.DEPLOYMENT_URL || null,
+            discoverySource: process.env.DISCOVERY_SOURCE || null,
+            deployOutcome: process.env.DEPLOY_OUTCOME || null,
+            verificationOutcome: process.env.VERIFY_OUTCOME || null,
+            screenshotOutcome: process.env.SCREENSHOT_OUTCOME || null,
+            workflowRunId: process.env.RUN_ID,
+            workflowRunUrl: `https://github.com/${process.env.REPOSITORY}/actions/runs/${process.env.RUN_ID}`,
+            recordedAt: new Date().toISOString(),
+          };
+          writeFileSync(
+            "release/production-deploy/status.json",
+            `${JSON.stringify(result, null, 2)}\n`,
+          );
+          NODE
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add release/production-deploy/status.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Record production deployment status [skip ci]"
+            for attempt in 1 2; do
+              if git push origin HEAD:main; then
+                break
+              fi
+              git pull --rebase origin main
+            done
+          fi
+
+      - name: Enforce a verified production deployment
+        if: always()
+        shell: bash
+        env:
+          AUTH_AVAILABLE: ${{ steps.cloudflare-auth.outputs.available }}
+          DEPLOY_OUTCOME: ${{ steps.deploy.outcome }}
+          DISCOVERY_OUTCOME: ${{ steps.production.outcome }}
+          VERIFY_OUTCOME: ${{ steps.production-smoke.outcome }}
+          SCREENSHOT_OUTCOME: ${{ steps.screenshot.outcome }}
+        run: |
+          set -euo pipefail
+          [[ "$AUTH_AVAILABLE" == "true" ]] || { echo "Cloudflare credentials are not configured."; exit 1; }
+          [[ "$DEPLOY_OUTCOME" == "success" ]] || { echo "Cloudflare deployment failed."; exit 1; }
+          [[ "$DISCOVERY_OUTCOME" == "success" ]] || { echo "The deployment URL could not be verified."; exit 1; }
+          [[ "$VERIFY_OUTCOME" == "success" ]] || { echo "The deployed API or WebSocket protocol failed verification."; exit 1; }
+          [[ "$SCREENSHOT_OUTCOME" == "success" ]] || { echo "The deployed title screen failed WebKit verification."; exit 1; }
