@@ -15,3 +15,5 @@
 ## 検証契約
 
 `release.json`の`visualVersion`は`beautiful-3d-v3`です。品質ゲートはiPhone 13相当のWebKitで`.title-preview--ready`を待ち、実際の3D描画スクリーンショットを保存します。ルームAPI、Durable Object、WebSocket、キャラクター同期、再接続の実通信試験も従来どおり必須です。
+
+初回のWebKit画像を目視確認し、タイトル用カメラに背を向けていた回転を修正しました。再検証では顔、瞳、衣装正面、ラケットを含む正面表示を合格条件とします。
