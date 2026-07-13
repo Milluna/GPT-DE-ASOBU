@@ -1,0 +1,200 @@
+name: Verify low-stance taunts in canonical production
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - src/game/avatar.ts
+      - src/game/tauntMotionOverlay.ts
+      - tests/tauntMotionOverlay.test.ts
+      - scripts/visual-contract.mjs
+      - scripts/write-release-meta.mjs
+      - tsconfig.tests.json
+      - .github/workflows/verify-low-stance-taunts-production.yml
+  push:
+    branches: [main]
+    paths:
+      - src/game/avatar.ts
+      - src/game/tauntMotionOverlay.ts
+      - tests/tauntMotionOverlay.test.ts
+      - scripts/visual-contract.mjs
+      - scripts/write-release-meta.mjs
+      - tsconfig.tests.json
+      - .github/workflows/verify-low-stance-taunts-production.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: aori-low-stance-taunts-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  source-verification:
+    name: Verify source motion contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.2.15
+
+      - name: Install locked dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Run motion and visual contract tests
+        shell: bash
+        run: |
+          set -o pipefail
+          bun run test 2>&1 | tee source-test.log
+
+      - name: Type-check and build production bundle
+        shell: bash
+        env:
+          AORI_BUILD_SHA: ${{ github.sha }}
+        run: |
+          set -o pipefail
+          bun run build:app 2>&1 | tee source-build.log
+
+      - name: Upload source diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: taunt-source-diagnostics-${{ github.run_id }}
+          path: |
+            source-test.log
+            source-build.log
+          if-no-files-found: warn
+          retention-days: 7
+
+  production-verification:
+    name: Exercise canonical Workers production
+    needs: source-verification
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      BASE_URL: https://gpt-de-asobu.ts9w5mc8ch.workers.dev
+    steps:
+      - name: Check out verification scripts
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Wait for this exact main revision and exercise realtime protocol
+        env:
+          EXPECTED_SHA: ${{ github.sha }}
+          WAIT_FOR_RELEASE_MS: 900000
+          RELEASE_POLL_MS: 5000
+        run: node scripts/network-smoke.mjs
+
+      - name: Verify deployed taunt profile metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          const base = process.env.BASE_URL.replace(/\/$/, "");
+          const response = await fetch(`${base}/release.json`, {
+            headers: { "cache-control": "no-cache" },
+          });
+          if (!response.ok) throw new Error(`release.json returned ${response.status}`);
+          const release = await response.json();
+          if (release.service !== "aori-room") throw new Error("unexpected service");
+          if (release.visualVersion !== "beautiful-3d-v3") {
+            throw new Error(`unexpected visualVersion: ${release.visualVersion}`);
+          }
+          if (release.tauntMotionProfile !== "low-stance-taunts-v1") {
+            throw new Error(`unexpected tauntMotionProfile: ${release.tauntMotionProfile}`);
+          }
+          const capabilities = new Set(release.capabilities ?? []);
+          for (const capability of ["low-stance-side-step", "instant-crouch-racket-swing"]) {
+            if (!capabilities.has(capability)) throw new Error(`missing capability: ${capability}`);
+          }
+          console.log(JSON.stringify(release, null, 2));
+          NODE
+
+      - name: Capture live side-step and racket poses in iPhone WebKit
+        shell: bash
+        run: |
+          set -euo pipefail
+          work="$RUNNER_TEMP/aori-playwright"
+          mkdir -p "$work" production-artifacts
+          cd "$work"
+          npm init -y >/dev/null
+          npm install --no-audit --no-fund playwright@latest >/dev/null
+          npx playwright install --with-deps webkit >/dev/null
+          cat > verify.mjs <<'NODE'
+          import { devices, webkit } from "playwright";
+          import { stat } from "node:fs/promises";
+
+          const base = process.env.BASE_URL;
+          const out = process.env.GITHUB_WORKSPACE + "/production-artifacts";
+          const browser = await webkit.launch();
+          const context = await browser.newContext({ ...devices["iPhone 13"] });
+          const page = await context.newPage();
+          const pageErrors = [];
+          page.on("pageerror", (error) => pageErrors.push(String(error)));
+
+          try {
+            await page.goto(base, { waitUntil: "networkidle", timeout: 60_000 });
+            await page.locator(".title-preview--ready").waitFor({ timeout: 30_000 });
+            await page.screenshot({ path: `${out}/title.png`, fullPage: true });
+
+            await page.getByRole("button", { name: "ひとりで操作テスト" }).click();
+            const canvas = page.locator(".game-canvas");
+            await canvas.waitFor({ timeout: 30_000 });
+            await page.waitForTimeout(500);
+            const box = await canvas.boundingBox();
+            if (!box) throw new Error("game canvas has no bounding box");
+            const x = box.x + box.width * 0.5;
+            const y = box.y + box.height * 0.58;
+
+            await page.mouse.move(x, y);
+            await page.mouse.down();
+            await page.mouse.move(x + 72, y, { steps: 2 });
+            await page.waitForTimeout(95);
+            await page.mouse.move(x - 72, y, { steps: 1 });
+            await page.waitForTimeout(32);
+            await page.screenshot({ path: `${out}/side-step-left.png`, fullPage: true });
+            await page.mouse.move(x + 72, y, { steps: 1 });
+            await page.waitForTimeout(32);
+            await page.screenshot({ path: `${out}/side-step-right.png`, fullPage: true });
+            await page.mouse.up();
+
+            await page.waitForTimeout(260);
+            await page.mouse.click(x, y);
+            await page.waitForTimeout(36);
+            await page.screenshot({ path: `${out}/racket-swing.png`, fullPage: true });
+
+            for (const file of ["title.png", "side-step-left.png", "side-step-right.png", "racket-swing.png"]) {
+              const info = await stat(`${out}/${file}`);
+              if (info.size < 10_000) throw new Error(`${file} is unexpectedly small`);
+            }
+            if (pageErrors.length) throw new Error(`page errors: ${pageErrors.join(" | ")}`);
+          } finally {
+            await browser.close();
+          }
+          NODE
+          BASE_URL="$BASE_URL" node verify.mjs
+
+      - name: Upload canonical production evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: low-stance-taunts-${{ github.sha }}
+          path: production-artifacts/
+          if-no-files-found: error
+          retention-days: 30

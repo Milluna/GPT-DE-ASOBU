@@ -21,6 +21,7 @@
     "tests",
     "src/game/locomotion.ts",
     "src/game/remoteInterpolator.ts",
+    "src/game/tauntMotionOverlay.ts",
     "src/types.ts",
     "src/characters.ts"
   ]
