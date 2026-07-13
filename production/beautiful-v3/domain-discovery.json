@@ -1,0 +1,230 @@
+{
+  "recordedAt": "2026-07-13T12:52:52.188Z",
+  "probes": [
+    {
+      "host": "gpt-de-asobu.milluna.workers.dev",
+      "requestedUrl": "https://gpt-de-asobu.milluna.workers.dev/release.json",
+      "error": "TypeError: fetch failed",
+      "isAori": false
+    },
+    {
+      "host": "e84a0782-62af-4960-94d1-1ffb4a5d558f-gpt-de-asobu.milluna.workers.dev",
+      "requestedUrl": "https://e84a0782-62af-4960-94d1-1ffb4a5d558f-gpt-de-asobu.milluna.workers.dev/release.json",
+      "error": "TypeError: fetch failed",
+      "isAori": false
+    },
+    {
+      "host": "e84a0782-gpt-de-asobu.milluna.workers.dev",
+      "requestedUrl": "https://e84a0782-gpt-de-asobu.milluna.workers.dev/release.json",
+      "error": "TypeError: fetch failed",
+      "isAori": false
+    },
+    {
+      "host": "gpt-de-asobu.milluna-github.workers.dev",
+      "requestedUrl": "https://gpt-de-asobu.milluna-github.workers.dev/release.json",
+      "error": "TypeError: fetch failed",
+      "isAori": false
+    },
+    {
+      "host": "e84a0782-62af-4960-94d1-1ffb4a5d558f-gpt-de-asobu.milluna-github.workers.dev",
+      "requestedUrl": "https://e84a0782-62af-4960-94d1-1ffb4a5d558f-gpt-de-asobu.milluna-github.workers.dev/release.json",
+      "error": "TypeError: fetch failed",
+      "isAori": false
+    },
+    {
+      "host": "e84a0782-gpt-de-asobu.milluna-github.workers.dev",
+      "requestedUrl": "https://e84a0782-gpt-de-asobu.milluna-github.workers.dev/release.json",
+      "error": "TypeError: fetch failed",
+      "isAori": false
+    },
+    {
+      "host": "gpt-de-asobu.milluna169899309.workers.dev",
+      "requestedUrl": "https://gpt-de-asobu.milluna169899309.workers.dev/release.json",
+      "error": "TypeError: fetch failed",
+      "isAori": false
+    },
+    {
+      "host": "e84a0782-62af-4960-94d1-1ffb4a5d558f-gpt-de-asobu.milluna169899309.workers.dev",
+      "requestedUrl": "https://e84a0782-62af-4960-94d1-1ffb4a5d558f-gpt-de-asobu.milluna169899309.workers.dev/release.json",
+      "error": "TypeError: fetch failed",
+      "isAori": false
+    },
+    {
+      "host": "e84a0782-gpt-de-asobu.milluna169899309.workers.dev",
+      "requestedUrl": "https://e84a0782-gpt-de-asobu.milluna169899309.workers.dev/release.json",
+      "error": "TypeError: fetch failed",
+      "isAori": false
+    },
+    {
+      "host": "gpt-de-asobu.milluna-169899309.workers.dev",
+      "requestedUrl": "https://gpt-de-asobu.milluna-169899309.workers.dev/release.json",
+      "error": "TypeError: fetch failed",
+      "isAori": false
+    },
+    {
+      "host": "e84a0782-62af-4960-94d1-1ffb4a5d558f-gpt-de-asobu.milluna-169899309.workers.dev",
+      "requestedUrl": "https://e84a0782-62af-4960-94d1-1ffb4a5d558f-gpt-de-asobu.milluna-169899309.workers.dev/release.json",
+      "error": "TypeError: fetch failed",
+      "isAori": false
+    },
+    {
+      "host": "e84a0782-gpt-de-asobu.milluna-169899309.workers.dev",
+      "requestedUrl": "https://e84a0782-gpt-de-asobu.milluna-169899309.workers.dev/release.json",
+      "error": "TypeError: fetch failed",
+      "isAori": false
+    },
+    {
+      "host": "gpt-de-asobu.d068687e2a79aee7f87e031a93b6d54b.workers.dev",
+      "requestedUrl": "https://gpt-de-asobu.d068687e2a79aee7f87e031a93b6d54b.workers.dev/release.json",
+      "error": "TypeError: fetch failed",
+      "isAori": false
+    },
+    {
+      "host": "e84a0782-62af-4960-94d1-1ffb4a5d558f-gpt-de-asobu.d068687e2a79aee7f87e031a93b6d54b.workers.dev",
+      "requestedUrl": "https://e84a0782-62af-4960-94d1-1ffb4a5d558f-gpt-de-asobu.d068687e2a79aee7f87e031a93b6d54b.workers.dev/release.json",
+      "error": "TypeError: fetch failed",
+      "isAori": false
+    },
+    {
+      "host": "e84a0782-gpt-de-asobu.d068687e2a79aee7f87e031a93b6d54b.workers.dev",
+      "requestedUrl": "https://e84a0782-gpt-de-asobu.d068687e2a79aee7f87e031a93b6d54b.workers.dev/release.json",
+      "error": "TypeError: fetch failed",
+      "isAori": false
+    },
+    {
+      "host": "gpt-de-asobu.d068687e.workers.dev",
+      "requestedUrl": "https://gpt-de-asobu.d068687e.workers.dev/release.json",
+      "error": "TypeError: fetch failed",
+      "isAori": false
+    },
+    {
+      "host": "e84a0782-62af-4960-94d1-1ffb4a5d558f-gpt-de-asobu.d068687e.workers.dev",
+      "requestedUrl": "https://e84a0782-62af-4960-94d1-1ffb4a5d558f-gpt-de-asobu.d068687e.workers.dev/release.json",
+      "error": "TypeError: fetch failed",
+      "isAori": false
+    },
+    {
+      "host": "e84a0782-gpt-de-asobu.d068687e.workers.dev",
+      "requestedUrl": "https://e84a0782-gpt-de-asobu.d068687e.workers.dev/release.json",
+      "error": "TypeError: fetch failed",
+      "isAori": false
+    },
+    {
+      "host": "gpt-de-asobu.93b6d54b.workers.dev",
+      "requestedUrl": "https://gpt-de-asobu.93b6d54b.workers.dev/release.json",
+      "error": "TypeError: fetch failed",
+      "isAori": false
+    },
+    {
+      "host": "e84a0782-62af-4960-94d1-1ffb4a5d558f-gpt-de-asobu.93b6d54b.workers.dev",
+      "requestedUrl": "https://e84a0782-62af-4960-94d1-1ffb4a5d558f-gpt-de-asobu.93b6d54b.workers.dev/release.json",
+      "error": "TypeError: fetch failed",
+      "isAori": false
+    },
+    {
+      "host": "e84a0782-gpt-de-asobu.93b6d54b.workers.dev",
+      "requestedUrl": "https://e84a0782-gpt-de-asobu.93b6d54b.workers.dev/release.json",
+      "error": "TypeError: fetch failed",
+      "isAori": false
+    },
+    {
+      "host": "gpt-de-asobu.gpt-de-asobu.workers.dev",
+      "requestedUrl": "https://gpt-de-asobu.gpt-de-asobu.workers.dev/release.json",
+      "error": "TypeError: fetch failed",
+      "isAori": false
+    },
+    {
+      "host": "e84a0782-62af-4960-94d1-1ffb4a5d558f-gpt-de-asobu.gpt-de-asobu.workers.dev",
+      "requestedUrl": "https://e84a0782-62af-4960-94d1-1ffb4a5d558f-gpt-de-asobu.gpt-de-asobu.workers.dev/release.json",
+      "error": "TypeError: fetch failed",
+      "isAori": false
+    },
+    {
+      "host": "e84a0782-gpt-de-asobu.gpt-de-asobu.workers.dev",
+      "requestedUrl": "https://e84a0782-gpt-de-asobu.gpt-de-asobu.workers.dev/release.json",
+      "error": "TypeError: fetch failed",
+      "isAori": false
+    },
+    {
+      "host": "gpt-de-asobu.gpt-de-asobu-milluna.workers.dev",
+      "requestedUrl": "https://gpt-de-asobu.gpt-de-asobu-milluna.workers.dev/release.json",
+      "error": "TypeError: fetch failed",
+      "isAori": false
+    },
+    {
+      "host": "e84a0782-62af-4960-94d1-1ffb4a5d558f-gpt-de-asobu.gpt-de-asobu-milluna.workers.dev",
+      "requestedUrl": "https://e84a0782-62af-4960-94d1-1ffb4a5d558f-gpt-de-asobu.gpt-de-asobu-milluna.workers.dev/release.json",
+      "error": "TypeError: fetch failed",
+      "isAori": false
+    },
+    {
+      "host": "e84a0782-gpt-de-asobu.gpt-de-asobu-milluna.workers.dev",
+      "requestedUrl": "https://e84a0782-gpt-de-asobu.gpt-de-asobu-milluna.workers.dev/release.json",
+      "error": "TypeError: fetch failed",
+      "isAori": false
+    },
+    {
+      "requestedUrl": "https://crt.sh/?q=gpt-de-asobu&output=json",
+      "finalUrl": "https://crt.sh/?q=gpt-de-asobu&output=json",
+      "status": 404,
+      "contentType": "text/html; charset=iso-8859-1",
+      "server": "nginx",
+      "cfRay": null,
+      "body": "<!DOCTYPE HTML PUBLIC \"-//IETF//DTD HTML 2.0//EN\">\n<html><head>\n<title>404 Not Found</title>\n</head><body>\n<h1>Not Found</h1>\n<p>The requested URL was not found on this server.</p>\n<hr>\n<address>Apache Server at crt.sh Port 443</address>\n</body></html>\n"
+    },
+    {
+      "requestedUrl": "https://crt.sh/?q=%25.gpt-de-asobu.%25&output=json",
+      "error": "AbortError: This operation was aborted"
+    },
+    {
+      "requestedUrl": "https://web.archive.org/cdx/search/cdx?url=*gpt-de-asobu*&output=json&filter=statuscode:200&collapse=urlkey&fl=original,timestamp,statuscode,mimetype&limit=1000",
+      "finalUrl": "https://web.archive.org/cdx/search/cdx?url=*gpt-de-asobu*&output=json&filter=statuscode:200&collapse=urlkey&fl=original,timestamp,statuscode,mimetype&limit=1000",
+      "status": 200,
+      "contentType": "application/json",
+      "server": "nginx",
+      "cfRay": null,
+      "body": "[]\n"
+    },
+    {
+      "requestedUrl": "https://urlscan.io/api/v1/search/?q=gpt-de-asobu",
+      "finalUrl": "https://urlscan.io/api/v1/search/?q=gpt-de-asobu",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "server": "nginx",
+      "cfRay": null,
+      "body": "{\n  \"results\": [],\n  \"total\": 0,\n  \"took\": 484,\n  \"has_more\": false\n}"
+    },
+    {
+      "requestedUrl": "https://index.commoncrawl.org/collinfo.json",
+      "finalUrl": "https://index.commoncrawl.org/collinfo.json",
+      "status": 200,
+      "contentType": "application/json",
+      "server": "nginx/1.31.2",
+      "cfRay": null,
+      "body": "[\n  {\n    \"id\": \"CC-MAIN-2026-25\",\n    \"name\": \"June 2026 Index\",\n    \"timegate\": \"https://index.commoncrawl.org/CC-MAIN-2026-25/\",\n    \"cdx-api\": \"https://index.commoncrawl.org/CC-MAIN-2026-25-index\",\n    \"from\": \"2026-06-05T21:48:11\",\n    \"to\": \"2026-06-18T19:32:05\"\n  },\n  {\n    \"id\": \"CC-MAIN-2026-21\",\n    \"name\": \"May 2026 Index\",\n    \"timegate\": \"https://index.commoncrawl.org/CC-MAIN-2026-21/\",\n    \"cdx-api\": \"https://index.commoncrawl.org/CC-MAIN-2026-21-index\",\n    \"from\": \"2026-05-08T07:40:46\",\n    \"to\": \"2026-05-21T22:06:58\"\n  },\n  {\n    \"id\": \"CC-MAIN-2026-17\",\n    \"name\": \"April 2026 Index\",\n    \"timegate\": \"https://index.commoncrawl.org/CC-MAIN-2026-17/\",\n    \"cdx-api\": \"https://index.commoncrawl.org/CC-MAIN-2026-17-index\",\n    \"from\": \"2026-04-10T08:11:53\",\n    \"to\": \"2026-04-23T05:04:17\"\n  },\n  {\n    \"id\": \"CC-MAIN-2026-12\",\n    \"name\": \"March 2026 Index\",\n    \"timegate\": \"https://index.commoncrawl.org/CC-MAIN-2026-12/\",\n    \"cdx-api\": \"https://index.commoncrawl.org/CC-MAIN-2026-12-index\",\n    \"from\": \"2026-03-05T07:07:56\",\n    \"to\": \"2026-03-17T17:32:36\"\n  },\n  {\n    \"id\": \"CC-MAIN-2026-08\",\n    \"name\": \"February 2026 Index\",\n    \"timegate\": \"https://index.commoncrawl.org/CC-MAIN-2026-08/\",\n    \"cdx-api\": \"https://index.commoncrawl.org/CC-MAIN-2026-08-index\",\n    \"from\": \"2026-02-06T18:14:58\",\n    \"to\": \"2026-02-19T11:27:33\"\n  },\n  {\n    \"id\": \"CC-MAIN-2026-04\",\n    \"name\": \"January 2026 Index\",\n    \"timegate\": \"https://index.commoncrawl.org/CC-MAIN-2026-04/\",\n    \"cdx-api\": \"https://index.commoncrawl.org/CC-MAIN-2026-04-index\",\n    \"from\": \"2026-01-12T16:12:39\",\n    \"to\": \"2026-01-25T14:05:40\"\n  },\n  {\n    \"id\": \"CC-MAIN-2025-51\",\n    \"name\": \"December 2025 Index\",\n    \"timegate\": \"https://index.commoncrawl.org/CC-MAIN-2025-51/\",\n    \"cdx-api\": \"https://index.commoncrawl.org/CC-MAIN-2025-51-index\",\n    \"from\": \"2025-12-04T19:18:28\",\n    \"to\": \"2025-12-17T14:22:46\"\n  },\n  {\n    \"id\": \"CC-MAIN-2025-47\",\n    \"name\": \"November 2025 Index\",\n    \"timegate\": \"https://index.commoncrawl.org/CC-MAIN-2025-47/\",\n    \"cdx-api\": \"https://index.commoncrawl.org/CC-MAIN-2025-47-index\",\n    \"from\": \"2025-11-06T20:07:18\",\n    \"to\": \"2025-11-19T12:34:13\"\n  },\n  {\n    \"id\": \"CC-MAIN-2025-43\",\n    \"name\": \"October 2025 Index\",\n    \"timegate\": \"https://index.commoncrawl.org/CC-MAIN-2025-43/\",\n    \"cdx-api\": \"https://index.commoncrawl.org/CC-MAIN-2025-43-index\",\n    \"from\": \"2025-10-05T11:42:39\",\n    \"to\": \"2025-10-19T01:06:58\"\n  },\n  {\n    \"id\": \"CC-MAIN-2025-38\",\n    \"name\": \"September 2025 Index\",\n    \"timegate\": \"https://index.commoncrawl.org/CC-MAIN-2025-38/\",\n    \"cdx-api\": \"https://index.commoncrawl.org/CC-MAIN-2025-38-index\",\n    \"from\": \"2025-09-05T11:21:01\",\n    \"to\": \"2025-09-18T11:00:14\"\n  },\n  {\n    \"id\": \"CC-MAIN-2025-33\",\n    \"name\": \"August 2025 Index\",\n    \"timegate\": \"https://index.commoncrawl.org/CC-MAIN-2025-33/\",\n    \"cdx-api\": \"https://index.commoncrawl.org/CC-MAIN-2025-33-index\",\n    \"from\": \"2025-08-02T22:09:07\",\n    \"to\": \"2025-08-15T23:42:38\"\n  },\n  {\n    \"id\": \"CC-MAIN-2025-30\",\n    \"name\": \"July 2025 Index\",\n    \"timegate\": \"https://index.commoncrawl.org/CC-MAIN-2025-30/\",\n    \"cdx-api\": \"https://index.commoncrawl.org/CC-MAIN-2025-30-index\",\n    \"from\": \"2025-07-07T18:36:38\",\n    \"to\": \"2025-07-20T20:56:29\"\n  },\n  {\n    \"id\": \"CC-MAIN-2025-26\",\n    \"name\": \"June 2025 Index\",\n    \"timegate\": \"https://index.commoncrawl.org/CC-MAIN-2025-26/\",\n    \"cdx-api\": \"https://index.commoncrawl.org/CC-MAIN-2025-26-index\",\n    \"from\": \"2025-06-12T11:28:40\",\n    \"to\": \"2025-06-25T09:54:11\"\n  },\n  {\n    \"id\": \"CC-MAIN-2025-21\",\n    \"name\": \"May 2025 Index\",\n    \"timegate\": \"https://index.commoncrawl.org/CC-MAIN-2025-21/\",\n    \"cdx-api\": \"https://index.commoncrawl.org/CC-MAIN-2025-21-index\",\n    \"from\": \"2025-05-12T01:17:22\",\n    \"to\": \"2025-05-25T06:44:06\"\n  },\n  {\n    \"id\": \"CC-MAIN-2025-18\",\n    \"name\": \"April 2025 Index\",\n    \"timegate\": \"https://index.commoncrawl.org/CC-MAIN-2025-18/\",\n    \"cdx-api\": \"https://index.commoncrawl.org/CC-MAIN-2025-18-index\",\n    \"from\": \"2025-04-17T13:50:10\",\n    \"to\": \"2025-05-01T01:05:29\"\n  },\n  {\n    \"id\": \"CC-MAIN-2025-13\",\n    \"name\": \"March 2025 Index\",\n    \"timegate\": \"https://index.commoncrawl.org/CC-MAIN-2025-13/\",\n    \"cdx-api\": \"https://index.commoncrawl.org/CC-MAIN-2025-13-index\",\n    \"from\": \"2025-03-15T03:16:26\",\n    \"to\": \"2025-03-28T17:32:37\"\n  },\n  {\n    \"id\": \"CC-MAIN-2025-08\",\n    \"name\": \"February 2025 Index\",\n    \"timegate\": \"https://index.commoncrawl.org/CC-MAIN-2025-08/\",\n    \"cdx-api\": \"https://index.commoncrawl.org/CC-MAIN-2025-08-index\",\n    \"from\": \"2025-02-06T11:42:25\",\n    \"to\": \"2025-02-19T23:14:40\"\n  },\n  {\n    \"id\": \"CC-MAIN-2025-05\",\n    \"name\": \"January 2025 Index\",\n    \"timegate\": \"https://index.commoncrawl.org/CC-MAIN-2025-05/\",\n    \"cdx-api\": \"https://index.commoncrawl.org/CC-MAIN-2025-05-index\",\n    \"from\": \"2025-01-12T19:43:58\",\n    \"to\": \"2025-01-26T16:54:02\"\n  },\n  {\n    \"id\": \"CC-MAIN-2024-51\",\n    \"name\": \"December 2024 Index\",\n    \"timegate\": \"https://index.commoncrawl.org/CC-MAIN-2024-51/\",\n    \"cdx-api\": \"https://index.commoncrawl.org/CC-MAIN-2024-51-index\",\n    \"from\": \"2024-12-01T16:20:23\",\n    \"to\": \"2024-12-15T00:22:57\"\n  },\n  {\n    \"id\": \"CC-MAIN-2024-46\",\n    \"name\": \"November 2024 Index\",\n    \"timegate\": \"https://index.commoncrawl.org/CC-MAIN-2024-46/\",\n    \"cdx-api\": \"https://index.commoncrawl.org/CC-MAIN-2024-46-index\",\n    \"from\": \"2024-11-01T18:42:24\",\n    \"to\": \"2024-11-15T05:19:00\"\n  },\n  {\n    \"id\": \"CC-MAIN-2024-42\",\n    \"name\": \"October 2024 Index\",\n    \"timegate\": \"https://index.commoncrawl.org/CC-MAIN-2024-42/\",\n    \"cdx-api\": \"https://index.commoncrawl.org/CC-MAIN-2024-42-index\",\n    \"from\": \"2024-10-03T09:40:20\",\n    \"to\": \"2024-10-16T09:12:31\"\n  },\n  {\n    \"id\": \"CC-MAIN-2024-38\",\n    \"name\": \"September 2024 Index\",\n    \"timegate\": \"https://index.commoncrawl.org/CC-MAIN-2024-38/\",\n    \"cdx-api\": \"https://index.commoncrawl.org/CC-MAIN-2024-38-index\",\n    \"from\": \"2024-09-07T09:58:56\",\n    \"to\": \"2024-09-21T04:50:54\"\n  },\n  {\n    \"id\": \"CC-MAIN-2024-33\",\n    \"name\": \"August 2024 Index\",\n    \"timegate\": \"https://index.commoncrawl.org/CC-MAIN-2024-33/\",\n    \"cdx-api\": \"https://index.commoncrawl.org/CC-MAIN-2024-33-index\",\n    \"from\": \"2024-08-02T23:45:08\",\n    \"to\": \"2024-08-16T06:08:12\"\n  },\n  {\n    \"id\": \"CC-MAIN-2024-30\",\n    \"name\": \"July 2024 Index\",\n    \"timegate\": \"https://index.commoncrawl.org/CC-MAIN-2024-30/\",\n    \"cdx-api\": \"https://index.commoncrawl.org/CC-MAIN-2024-30-index\",\n    \"from\": \"2024-07-12T09:42:14\",\n    \"to\": \"2024-07-25T20:55:45\"\n  },\n  {\n    \"id\": \"CC-MAIN-2024-26\",\n    \"name\": \"June 2024 Index\",\n    \"timegate\": \"https://index.commoncrawl.org/CC-MAIN-2024-26/\",\n    \"cdx-api\": \"https://index.commoncrawl.org/CC-MAIN-2024-26-index\",\n    \"from\": \"2024-06-12T14:04:24\",\n    \"to\": \"2024-06-25T23:28:02\"\n  },\n  {\n    \"id\": \"CC-MAIN-2024-22\",\n    \"name\": \"May 2024 Index\",\n    \"timegate\": \"https://index.commoncrawl.org/CC-MAIN-2024-22/\",\n    \"cdx-api\": \"https://index.commoncrawl.org/CC-MAIN-2024-22-index\",\n    \"from\": \"2024-05-17T23:31:22\",\n    \"to\": \"2024-05-31T00:06:14\"\n  },\n  {\n    \"id\": \"CC-MAIN-2024-18\",\n    \"name\": \"April 2024 Index\",\n    \"timegate\": \"https://index.commoncrawl.org/CC-MAIN-2024-18/\",\n    \"cdx-api\": \"https://index.commoncrawl.org/CC-MAIN-2024-18-index\",\n    \"from\": \"2024-04-12T10:13:54\",\n    \"to\": \"2024-04-25T16:02:16\"\n  },\n  {\n    \"id\": \"CC-MAIN-2024-10\",\n    \"name\": \"February/March 2024 Index\",\n    \"timegate\": \"https://index.commoncrawl.org/CC-MAIN-2024-10/\",\n    \"cdx-api\": \"https://index.commoncrawl.org/CC-MAIN-2024-10-index\",\n    \"from\": \"2024-02-20T21:10:55\",\n    \"to\": \"2024-03-05T15:40:45\"\n  },\n  {\n    \"id\": \"CC-MAIN-2023-50\",\n    \"name\": \"November/December 2023 Index\",\n    \"timegate\": \"https://index.commoncrawl.org/CC-MAIN-2023-50/\",\n    \"cdx-api\": \"https://index.commoncrawl.org/CC-MAIN-2023-50-index\",\n    \"from\": \"2023-11-28T08:34:43\",\n    \"to\": \"2023-12-12T00:04:08\"\n  },\n  {\n    \"id\": \"CC-MAIN-2023-40\",\n    \"name\": \"September/October 2023 Index\",\n    \"timegate\": \"https://index.commoncrawl.org/CC-MAIN-2023-40/\",\n    \"cdx-api\": \"https://index.commoncrawl.org/CC-MAIN-2023-40-index\",\n    \"from\": \"2023-09-21T07:37:11\",\n    \"to\": \"2023-10-05T04:20:06\"\n  },\n  {\n    \"id\": \"CC-MAIN-2023-23\",\n    \"name\": \"May/June 2023 Index\",\n    \"timegate\": \"https://index.commoncrawl.org/CC-MAIN-2023-23/\",\n    \"cdx-api\": \"https://index.commoncrawl.org/CC-MAIN-2023-23-index\",\n    \"from\": \"2023-05-27T22:35:15\",\n    \"to\": \"2023-06-11T02:30:20\"\n  },\n  {\n    \"id\": \"CC-MAIN-2023-14\",\n    \"name\": \"March/April 2023 Index\",\n    \"timegate\": \"https://index.commoncrawl.org/CC-MAIN-2023-14/\",\n    \"cdx-api\": \"https://index.commoncrawl.org/CC-MAIN-2023-14-index\",\n    \"from\": \"2023-03-20T08:35:13\",\n    \"to\": \"2023-04-02T13:50:54\"\n  },\n  {\n    \"id\": \"CC-MAIN-2023-06\",\n    \"name\": \"January/February 2023 Index\",\n    \"timegate\": \"https://index.commoncrawl.org/CC-MAIN-2023-06/\",\n    \"cdx-api\": \"https://index.commoncrawl.org/CC-MAIN-2023-06-index\",\n    \"from\": \"2023-01-26T21:08:44\",\n    \"to\": \"2023-02-09T14:25:10\"\n  },\n  {\n    \"id\": \"CC-MAIN-2022-49\",\n    \"name\": \"November/December 2022 Index\",\n    \"timegate\": \"https://index.commoncrawl.org/CC-MAIN-2022-49/\",\n    \"cdx-api\": \"https://index.commoncrawl.org/CC-MAIN-2022-49-index\",\n    \"from\": \"2022-11-26T08:07:25\",\n    \"to\": \"2022-12-10T10:42:42\"\n  },\n  {\n    \"id\": \"CC-MAIN-2022-40\",\n    \"name\": \"September/October 2022 Index\",\n    \"timegate\": \"https://index.commoncrawl.org/CC-MAIN-2022-40/\",\n    \"cdx-api\": \"https://index.commoncrawl.org/CC-MAIN-2022-40-index\",\n    \"from\": \"2022-09-24T15:15:38\",\n    \"to\": \"2022-10-08T00:04:52\"\n  },\n  {\n    \"id\": \"CC-MAIN-2022-33\",\n    \"name\": \"August 2022 Index\",\n    \"timegate\": \"https://index.commoncrawl.org/CC-MAIN-2022-33/\",\n    \"cdx-api\": \"https://index.commoncrawl.org/CC-MAIN-2022-33-index\",\n    \"from\": \"2022-08-07T15:09:25\",\n    \"to\": \"2022-08-20T07:31:08\"\n  },\n  {\n    \"id\": \"CC-MAIN-2022-27\",\n    \"name\": \"June/July 2022 Index\",\n    \"timegate\": \"https://index.commoncrawl.org/CC-MAIN-2022-27/\",\n    \"cdx-api\": \"https://index.commoncrawl.org/CC-MAIN-2022-27-index\",\n    \"from\": \"2022-06-24T21:39:08\",\n    \"to\": \"2022-07-07T18:43:29\"\n  },\n  {\n    \"id\": \"CC-MAIN-2022-21\",\n    \"name\": \"May 2022 Index\",\n    \"timegate\": \"https://index.commoncrawl.org/CC-MAIN-2022-21/\",\n    \"cdx-api\": \"https://index.commoncrawl.org/CC-MAIN-2022-21-index\",\n    \"from\": \"2022-05-16T04:13:37\",\n    \"to\": \"2022-05-29T13:38:54\"\n  },\n  {\n    \"id\": \"CC-MAIN-2022-05\",\n    \"name\": \"January 2022 Index\",\n    \"timegate\": \"https://index.commoncrawl.org/CC-MAIN-2022-05/\",\n    \"cdx-api\": \"https://index.commoncrawl.org/CC-MAIN-2022-05-index\",\n    \"from\": \"2022-01-16T09:31:37\",\n    \"to\": \"2022-01-29T15:24:05\"\n  },\n  {\n    \"id\": \"CC-MAIN-2021-49\",\n    \"name\": \"November/December 2021 Index\",\n    \"timegate\": \"https://index.commoncrawl.org/CC-MAIN-2021-49/\",\n    \"cdx-api\": \"https://index.commoncrawl.org/CC-MAIN-2021-49-index\",\n    \"from\": \"2021-11-26T22:40:56\",\n    \"to\": \"2021-12-09T15:25:03\"\n  },\n  {\n    \"id\": \"CC-MAIN-2021-43\",\n    \"name\": \"October 2021 Index\",\n    \"timegate\": \"https://index.commoncrawl.org/CC-MAIN-2021-43/\",\n    \"cdx-api\": \"https://index.commoncrawl.org/CC-MAIN-2021-43-index\",\n    \"from\": \"2021-10-15T19:24:39\",\n    \"to\": \"2021-10-28T22:36:01\"\n  },\n  {\n    \"id\": \"CC-MAIN-2021-39\",\n    \"name\": \"September 2021 Index\",\n    \"timegate\": \"https://index.commoncrawl.org/CC-MAIN-2021-39/\",\n    \"cdx-api\": \"https://index.commoncrawl.org/CC-MAIN-2021-39-index\",\n    \"from\": \"2021-09-16T09:49:19\",\n    \"to\": \"2021-09-29T03:47:57\"\n  },\n  {\n    \"id\": \"CC-MAIN-2021-31\",\n    \"name\": \"July/August 2021 Index\",\n    \"timegate\": \"https://index.commoncrawl.org/CC-MAIN-2021-31/\",\n    \"cdx-api\": \"https://index.commoncrawl.org/CC-MAIN-2021-31-index\",\n    \"from\": \"2021-07-23T14:39:21\",\n    \"to\": \"2021-08-06T05:01:21\"\n  },\n  {\n    \"id\": \"CC-MAIN-2021-25\",\n    \"name\": \"June 2021 Index\",\n    \"timegate\": \"https://index.commoncrawl.org/CC-MAIN-2021-25/\""
+    },
+    {
+      "requestedUrl": "https://api.github.com/search/code?q=%22gpt-de-asobu%22",
+      "finalUrl": "https://api.github.com/search/code?q=%22gpt-de-asobu%22",
+      "status": 401,
+      "contentType": "application/json; charset=utf-8",
+      "server": "github.com",
+      "cfRay": null,
+      "body": "{\r\n  \"message\": \"Requires authentication\",\r\n  \"documentation_url\": \"https://docs.github.com/rest\",\r\n  \"status\": \"401\"\r\n}"
+    },
+    {
+      "requestedUrl": "https://api.github.com/search/commits?q=e83a2570-f29b-4ce5-9750-6ef6c8d0275d",
+      "finalUrl": "https://api.github.com/search/commits?q=e83a2570-f29b-4ce5-9750-6ef6c8d0275d",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "server": "github.com",
+      "cfRay": null,
+      "body": "{\"total_count\":25,\"incomplete_results\":false,\"items\":[{\"url\":\"https://api.github.com/repos/Maria-Ftaieh/cowrie-project/commits/e83a25708a2d301c07d78269ebda5facdad62767\",\"sha\":\"e83a25708a2d301c07d78269ebda5facdad62767\",\"node_id\":\"MDY6Q29tbWl0MTI1NTE1OTg0OTplODNhMjU3MDhhMmQzMDFjMDdkNzgyNjllYmRhNWZhY2RhZDYyNzY3\",\"html_url\":\"https://github.com/Maria-Ftaieh/cowrie-project/commit/e83a25708a2d301c07d78269ebda5facdad62767\",\"comments_url\":\"https://api.github.com/repos/Maria-Ftaieh/cowrie-project/commits/e83a25708a2d301c07d78269ebda5facdad62767/comments\",\"commit\":{\"url\":\"https://api.github.com/repos/Maria-Ftaieh/cowrie-project/git/commits/e83a25708a2d301c07d78269ebda5facdad62767\",\"author\":{\"date\":\"2025-08-26T18:05:46.000+08:00\",\"name\":\"Michel Oosterhof\",\"email\":\"micheloosterhof@users.noreply.github.com\"},\"committer\":{\"date\":\"2025-08-26T18:05:46.000+08:00\",\"name\":\"GitHub\",\"email\":\"noreply@github.com\"},\"message\":\"Merge pull request #2676 from cowrie/dependabot/pip/pyright-1.1.404\\n\\nbuild(deps-dev): bump pyright from 1.1.401 to 1.1.404\",\"tree\":{\"url\":\"https://api.github.com/repos/Maria-Ftaieh/cowrie-project/git/trees/01e17e06475f4d6925c4c63b936cc3b2a764e31a\",\"sha\":\"01e17e06475f4d6925c4c63b936cc3b2a764e31a\"},\"comment_count\":0},\"author\":{\"login\":\"micheloosterhof\",\"id\":1063043,\"node_id\":\"MDQ6VXNlcjEwNjMwNDM=\",\"avatar_url\":\"https://avatars.githubusercontent.com/u/1063043?v=4\",\"gravatar_id\":\"\",\"url\":\"https://api.github.com/users/micheloosterhof\",\"html_url\":\"https://github.com/micheloosterhof\",\"followers_url\":\"https://api.github.com/users/micheloosterhof/followers\",\"following_url\":\"https://api.github.com/users/micheloosterhof/following{/other_user}\",\"gists_url\":\"https://api.github.com/users/micheloosterhof/gists{/gist_id}\",\"starred_url\":\"https://api.github.com/users/micheloosterhof/starred{/owner}{/repo}\",\"subscriptions_url\":\"https://api.github.com/users/micheloosterhof/subscriptions\",\"organizations_url\":\"https://api.github.com/users/micheloosterhof/orgs\",\"repos_url\":\"https://api.github.com/users/micheloosterhof/repos\",\"events_url\":\"https://api.github.com/users/micheloosterhof/events{/privacy}\",\"received_events_url\":\"https://api.github.com/users/micheloosterhof/received_events\",\"type\":\"User\",\"user_view_type\":\"public\",\"site_admin\":false},\"committer\":{\"login\":\"web-flow\",\"id\":19864447,\"node_id\":\"MDQ6VXNlcjE5ODY0NDQ3\",\"avatar_url\":\"https://avatars.githubusercontent.com/u/19864447?v=4\",\"gravatar_id\":\"\",\"url\":\"https://api.github.com/users/web-flow\",\"html_url\":\"https://github.com/web-flow\",\"followers_url\":\"https://api.github.com/users/web-flow/followers\",\"following_url\":\"https://api.github.com/users/web-flow/following{/other_user}\",\"gists_url\":\"https://api.github.com/users/web-flow/gists{/gist_id}\",\"starred_url\":\"https://api.github.com/users/web-flow/starred{/owner}{/repo}\",\"subscriptions_url\":\"https://api.github.com/users/web-flow/subscriptions\",\"organizations_url\":\"https://api.github.com/users/web-flow/orgs\",\"repos_url\":\"https://api.github.com/users/web-flow/repos\",\"events_url\":\"https://api.github.com/users/web-flow/events{/privacy}\",\"received_events_url\":\"https://api.github.com/users/web-flow/received_events\",\"type\":\"User\",\"user_view_type\":\"public\",\"site_admin\":false},\"parents\":[{\"url\":\"https://api.github.com/repos/Maria-Ftaieh/cowrie-project/commits/804cd036e0a46458b9de8dafdf75236d96b8cae8\",\"html_url\":\"https://github.com/Maria-Ftaieh/cowrie-project/commit/804cd036e0a46458b9de8dafdf75236d96b8cae8\",\"sha\":\"804cd036e0a46458b9de8dafdf75236d96b8cae8\"},{\"url\":\"https://api.github.com/repos/Maria-Ftaieh/cowrie-project/commits/2f054ff641abe3ac81a86b04098a6537832337f2\",\"html_url\":\"https://github.com/Maria-Ftaieh/cowrie-project/commit/2f054ff641abe3ac81a86b04098a6537832337f2\",\"sha\":\"2f054ff641abe3ac81a86b04098a6537832337f2\"}],\"repository\":{\"id\":1255159849,\"node_id\":\"R_kgDOStA4KQ\",\"name\":\"cowrie-project\",\"full_name\":\"Maria-Ftaieh/cowrie-project\",\"private\":false,\"owner\":{\"login\":\"Maria-Ftaieh\",\"id\":284736998,\"node_id\":\"U_kgDOEPi95g\",\"avatar_url\":\"https://avatars.githubusercontent.com/u/284736998?v=4\",\"gravatar_id\":\"\",\"url\":\"https://api.github.com/users/Maria-Ftaieh\",\"html_url\":\"https://github.com/Maria-Ftaieh\",\"followers_url\":\"https://api.github.com/users/Maria-Ftaieh/followers\",\"following_url\":\"https://api.github.com/users/Maria-Ftaieh/following{/other_user}\",\"gists_url\":\"https://api.github.com/users/Maria-Ftaieh/gists{/gist_id}\",\"starred_url\":\"https://api.github.com/users/Maria-Ftaieh/starred{/owner}{/repo}\",\"subscriptions_url\":\"https://api.github.com/users/Maria-Ftaieh/subscriptions\",\"organizations_url\":\"https://api.github.com/users/Maria-Ftaieh/orgs\",\"repos_url\":\"https://api.github.com/users/Maria-Ftaieh/repos\",\"events_url\":\"https://api.github.com/users/Maria-Ftaieh/events{/privacy}\",\"received_events_url\":\"https://api.github.com/users/Maria-Ftaieh/received_events\",\"type\":\"User\",\"user_view_type\":\"public\",\"site_admin\":false},\"html_url\":\"https://github.com/Maria-Ftaieh/cowrie-project\",\"description\":null,\"fork\":false,\"url\":\"https://api.github.com/repos/Maria-Ftaieh/cowrie-project\",\"forks_url\":\"https://api.github.com/repos/Maria-Ftaieh/cowrie-project/forks\",\"keys_url\":\"https://api.github.com/repos/Maria-Ftaieh/cowrie-project/keys{/key_id}\",\"collaborators_url\":\"https://api.github.com/repos/Maria-Ftaieh/cowrie-project/collaborators{/collaborator}\",\"teams_url\":\"https://api.github.com/repos/Maria-Ftaieh/cowrie-project/teams\",\"hooks_url\":\"https://api.github.com/repos/Maria-Ftaieh/cowrie-project/hooks\",\"issue_events_url\":\"https://api.github.com/repos/Maria-Ftaieh/cowrie-project/issues/events{/number}\",\"events_url\":\"https://api.github.com/repos/Maria-Ftaieh/cowrie-project/events\",\"assignees_url\":\"https://api.github.com/repos/Maria-Ftaieh/cowrie-project/assignees{/user}\",\"branches_url\":\"https://api.github.com/repos/Maria-Ftaieh/cowrie-project/branches{/branch}\",\"tags_url\":\"https://api.github.com/repos/Maria-Ftaieh/cowrie-project/tags\",\"blobs_url\":\"https://api.github.com/repos/Maria-Ftaieh/cowrie-project/git/blobs{/sha}\",\"git_tags_url\":\"https://api.github.com/repos/Maria-Ftaieh/cowrie-project/git/tags{/sha}\",\"git_refs_url\":\"https://api.github.com/repos/Maria-Ftaieh/cowrie-project/git/refs{/sha}\",\"trees_url\":\"https://api.github.com/repos/Maria-Ftaieh/cowrie-project/git/trees{/sha}\",\"statuses_url\":\"https://api.github.com/repos/Maria-Ftaieh/cowrie-project/statuses/{sha}\",\"languages_url\":\"https://api.github.com/repos/Maria-Ftaieh/cowrie-project/languages\",\"stargazers_url\":\"https://api.github.com/repos/Maria-Ftaieh/cowrie-project/stargazers\",\"contributors_url\":\"https://api.github.com/repos/Maria-Ftaieh/cowrie-project/contributors\",\"subscribers_url\":\"https://api.github.com/repos/Maria-Ftaieh/cowrie-project/subscribers\",\"subscription_url\":\"https://api.github.com/repos/Maria-Ftaieh/cowrie-project/subscription\",\"commits_url\":\"https://api.github.com/repos/Maria-Ftaieh/cowrie-project/commits{/sha}\",\"git_commits_url\":\"https://api.github.com/repos/Maria-Ftaieh/cowrie-project/git/commits{/sha}\",\"comments_url\":\"https://api.github.com/repos/Maria-Ftaieh/cowrie-project/comments{/number}\",\"issue_comment_url\":\"https://api.github.com/repos/Maria-Ftaieh/cowrie-project/issues/comments{/number}\",\"contents_url\":\"https://api.github.com/repos/Maria-Ftaieh/cowrie-project/contents/{+path}\",\"compare_url\":\"https://api.github.com/repos/Maria-Ftaieh/cowrie-project/compare/{base}...{head}\",\"merges_url\":\"https://api.github.com/repos/Maria-Ftaieh/cowrie-project/merges\",\"archive_url\":\"https://api.github.com/repos/Maria-Ftaieh/cowrie-project/{archive_format}{/ref}\",\"downloads_url\":\"https://api.github.com/repos/Maria-Ftaieh/cowrie-project/downloads\",\"issues_url\":\"https://api.github.com/repos/Maria-Ftaieh/cowrie-project/issues{/number}\",\"pulls_url\":\"https://api.github.com/repos/Maria-Ftaieh/cowrie-project/pulls{/number}\",\"milestones_url\":\"https://api.github.com/repos/Maria-Ftaieh/cowrie-project/milestones{/number}\",\"notifications_url\":\"https://api.github.com/repos/Maria-Ftaieh/cowrie-project/notifications{?since,all,participating}\",\"labels_url\":\"https://api.github.com/repos/Maria-Ftaieh/cowrie-project/labels{/name}\",\"releases_url\":\"https://api.github.com/repos/Maria-Ftaieh/cowrie-project/releases{/id}\",\"deployments_url\":\"https://api.github.com/repos/Maria-Ftaieh/cowrie-project/deployments\"},\"score\":1.0},{\"url\":\"https://api.github.com/repos/kuldeepgiri04/IOT-Honeypot-network/commits/e83a25708a2d301c07d78269ebda5facdad62767\",\"sha\":\"e83a25708a2d301c07d78269ebda5facdad62767\",\"node_id\":\"MDY6Q29tbWl0MTE3NzE2ODgyNjplODNhMjU3MDhhMmQzMDFjMDdkNzgyNjllYmRhNWZhY2RhZDYyNzY3\",\"html_url\":\"https://github.com/kuldeepgiri04/IOT-Honeypot-network/commit/e83a25708a2d301c07d78269ebda5facdad62767\",\"comments_url\":\"https://api.github.com/repos/kuldeepgiri04/IOT-Honeypot-network/commits/e83a25708a2d301c07d78269ebda5facdad62767/comments\",\"commit\":{\"url\":\"https://api.github.com/repos/kuldeepgiri04/IOT-Honeypot-network/git/commits/e83a25708a2d301c07d78269ebda5facdad62767\",\"author\":{\"date\":\"2025-08-26T18:05:46.000+08:00\",\"name\":\"Michel Oosterhof\",\"email\":\"micheloosterhof@users.noreply.github.com\"},\"committer\":{\"date\":\"2025-08-26T18:05:46.000+08:00\",\"name\":\"GitHub\",\"email\":\"noreply@github.com\"},\"message\":\"Merge pull request #2676 from cowrie/dependabot/pip/pyright-1.1.404\\n\\nbuild(deps-dev): bump pyright from 1.1.401 to 1.1.404\",\"tree\":{\"url\":\"https://api.github.com/repos/kuldeepgiri04/IOT-Honeypot-network/git/trees/01e17e06475f4d6925c4c63b936cc3b2a764e31a\",\"sha\":\"01e17e06475f4d6925c4c63b936cc3b2a764e31a\"},\"comment_count\":0},\"author\":{\"login\":\"micheloosterhof\",\"id\":1063043,\"node_id\":\"MDQ6VXNlcjEwNjMwNDM=\",\"avatar_url\":\"https://avatars.githubusercontent.com/u/1063043?v=4\",\"gravatar_id\":\"\",\"url\":\"https://api.github.com/users/micheloosterhof\",\"html_url\":\"https://github.com/micheloosterhof\",\"followers_url\":\"https://api.github.com/users/micheloosterhof/followers\",\"following_url\":\"https://api.github.com/users/micheloosterhof/following{/other_user}\",\"gists_url\":\"https://api.github.com/users/micheloosterhof/gists{/gist_id}\",\"starred_url\":\"https://api.github.com/users/micheloosterhof/starred{/owner}{/repo}\",\"subscriptions_url\":\"https://api.github.com/users/micheloosterhof/subscriptions\",\"organizations_url\":\"https://api.github.com/users/micheloosterhof/orgs\",\"repos_url\":\"https://api.github.com/users/micheloosterhof/repos\",\"events_url\":\"https://api.github.com/users/micheloosterhof/events{/privacy}\",\"received_events_url\":\"https://api.github.com/users/micheloosterhof/received_events\",\"type\":\"User\",\"user_view_type\":\"public\",\"site_admin\":false},\"committer\":{\"login\":\"web-flow\",\"id\":19864447,\"node_id\":\"MDQ6VXNlcjE5ODY0NDQ3\",\"avatar_url\":\"https://avatars.githubusercontent.com/u/19864447?v=4\",\"gravatar_id\":\"\",\"url\":\"https://api.github.com/users/web-flow\",\"html_url\":\"https://github.com/web-flow\",\"followers_url\":\"https://api.github.com/users/web-flow/followers\",\"following_url\":\"https://api.github.com/users/web-flow/following{/other_user}\",\"gists_url\":\"https://api.github.com/users/web-flow/gists{/gist_id}\",\"starred_url\":\"https://api.github.com/users/web-flow/starred{/owner}{/repo}\",\"subscriptions_url\":\"https://api.github.com/users/web-flow/subscriptions\",\"organizations_url\":\"https://api.github.com/users/web-flow/orgs\",\"repos_url\":\"https://api.github.com/users/web-flow/repos\",\"events_url\":\"https://api.github.com/users/web-flow/events{/privacy}\",\"received_events_url\":\"https://api.github.com/users/web-flow/received_events\",\"type\":\"User\",\"user_view_type\":\"public\",\"site_admin\":false},\"parents\":[{\"url\":\"https://api.github.com/repos/kuldeepgiri04/IOT-Honeypot-network/commits/804cd036e0a46458b9de8dafdf75236d96b8cae8\",\"html_url\":\"https://github.com/kuldeepgiri04/IOT-Honeypot-network/commit/804cd036e0a46458b9de8dafdf75236d96b8cae8\",\"sha\":\"804cd036e0a46458b9de8dafdf75236d96b8cae8\"},{\"url\":\"https://api.github.com/repos/kuldeepgiri04/IOT-Honeypot-network/commits/2f054ff641abe3ac81a86b04098a6537832337f2\",\"html_url\":\"https://github.com/kuldeepgiri04/IOT-Honeypot-network/commit/2f054ff641abe3ac81a86b04098a6537832337f2\","
+    },
+    {
+      "source": "commoncrawl-parse",
+      "error": "SyntaxError: Expected ',' or '}' after property value in JSON at position 12000 (line 349 column 65)"
+    }
+  ],
+  "discoveries": []
+}
