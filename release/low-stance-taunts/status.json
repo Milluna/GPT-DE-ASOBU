@@ -1,0 +1,13 @@
+{
+  "status": "success",
+  "productionUrl": "https://gpt-de-asobu.ts9w5mc8ch.workers.dev",
+  "mainSha": "feea7b8c385764575ce0275056fd2b9ae1bafc70",
+  "visualVersion": "beautiful-3d-v3",
+  "tauntMotionProfile": "low-stance-taunts-v1",
+  "protocolOutcome": "success",
+  "metadataOutcome": "success",
+  "webkitMotionOutcome": "success",
+  "workflowRunId": "29268884704",
+  "workflowRunUrl": "https://github.com/Milluna/GPT-DE-ASOBU/actions/runs/29268884704",
+  "verifiedAt": "2026-07-13T17:04:45.117Z"
+}
