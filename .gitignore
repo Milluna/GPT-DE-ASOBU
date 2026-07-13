@@ -5,9 +5,9 @@ dist/
 *.log
 .playwright-*.mjs
 .network-check.mjs
-.wrangler/
 .dev.vars
-
 *.tsbuildinfo
 public/release.json
+playwright-report/
+test-results/
 production-artifacts/
