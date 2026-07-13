@@ -63,9 +63,11 @@ jobs:
           HEAD_BRANCH: ${{ github.head_ref }}
         run: |
           set -euo pipefail
+          # GitHub App tokens may not update workflow files. Keep those files
+          # unchanged here; the connector will apply the verified workflow update.
+          git restore --source=HEAD -- .github/workflows
           rm -rf release/v3.0/payload
           rm -f .github/beautiful-v3-trigger
-          rm -f .github/workflows/apply-beautiful-v3.yml
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
