@@ -10,8 +10,9 @@
     "deploy": "bunx wrangler deploy",
     "preview": "vite preview --host 0.0.0.0",
     "smoke:network": "node scripts/network-smoke.mjs",
-    "check": "npm run test && npm run build",
-    "build:app": "tsc -b --pretty false && vite build"
+    "smoke:production": "node scripts/network-smoke.mjs",
+    "check": "npm run test && npm run build:app",
+    "build:app": "node scripts/write-release-meta.mjs && tsc -b --pretty false && vite build"
   },
   "keywords": [],
   "author": "",
