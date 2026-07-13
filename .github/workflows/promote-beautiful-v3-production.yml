@@ -1,0 +1,234 @@
+name: Promote beautiful 3D v3 to production
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/promote-beautiful-v3-trigger
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  deployments: read
+
+concurrency:
+  group: aori-beautiful-v3-production
+  cancel-in-progress: false
+
+jobs:
+  promote-and-verify:
+    name: Promote source, wait for Cloudflare, and verify production
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    steps:
+      - name: Check out verified v3 source
+        uses: actions/checkout@v4
+        with:
+          ref: source-direct-v1.2
+          path: source
+          fetch-depth: 1
+
+      - name: Resolve source revision
+        id: source
+        shell: bash
+        run: echo "sha=$(git -C source rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.2.15
+
+      - name: Re-run complete source verification
+        working-directory: source
+        env:
+          AORI_BUILD_SHA: ${{ steps.source.outputs.sha }}
+        run: |
+          set -euo pipefail
+          bun install --frozen-lockfile
+          bun run test
+          node --test scripts/resolve-production-url-selftest.mjs
+          bun run build:app
+
+      - name: Check out production branch
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: production
+          fetch-depth: 0
+
+      - name: Promote direct source tree to main
+        id: promotion
+        shell: bash
+        env:
+          SOURCE_SHA: ${{ steps.source.outputs.sha }}
+        run: |
+          set -euo pipefail
+          rsync -a --delete \
+            --exclude='.git/' \
+            --exclude='.github/' \
+            --exclude='release/' \
+            --exclude='node_modules/' \
+            --exclude='dist/' \
+            source/ production/
+          rm -f production/.github/promote-beautiful-v3-trigger
+          mkdir -p production/release/promotions
+          SOURCE_SHA="$SOURCE_SHA" node --input-type=module <<'NODE'
+          import { writeFileSync } from "node:fs";
+          const record = {
+            release: "beautiful-3d-v3",
+            sourceBranch: "source-direct-v1.2",
+            sourceSha: process.env.SOURCE_SHA,
+            promotedAt: new Date().toISOString(),
+          };
+          writeFileSync(
+            "production/release/promotions/beautiful-3d-v3.json",
+            `${JSON.stringify(record, null, 2)}\n`,
+          );
+          NODE
+          cd production
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Promote beautiful 3D v3 source to production"
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          git push origin HEAD:main
+
+      - name: Discover Cloudflare production URL
+        id: production
+        env:
+          OVERRIDE_URL: ${{ vars.PRODUCTION_BASE_URL }}
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          SOURCE_REF: main
+          WAIT_FOR_DISCOVERY_MS: 900000
+          DISCOVERY_POLL_MS: 10000
+          PROBE_TIMEOUT_MS: 12000
+        run: node source/scripts/resolve-production-url.mjs
+
+      - name: Verify deployed release identity and two-player protocol
+        id: smoke
+        env:
+          BASE_URL: ${{ steps.production.outputs.url }}
+          EXPECTED_SHA: ${{ steps.promotion.outputs.sha }}
+          WAIT_FOR_RELEASE_MS: 900000
+          RELEASE_POLL_MS: 5000
+        run: node source/scripts/network-smoke.mjs
+
+      - name: Verify deployed beautiful 3D title in iPhone WebKit
+        id: screenshot
+        shell: bash
+        env:
+          BASE_URL: ${{ steps.production.outputs.url }}
+        run: |
+          set -euo pipefail
+          mkdir -p production-artifacts
+          npx --yes playwright@latest install --with-deps webkit
+          npx --yes playwright@latest screenshot \
+            --browser=webkit \
+            --device="iPhone 13" \
+            --wait-for-selector=".title-preview--ready" \
+            --wait-for-timeout=4000 \
+            "$BASE_URL" \
+            production-artifacts/title-iphone.png
+          test -s production-artifacts/title-iphone.png
+
+      - name: Upload production evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: beautiful-v3-production-${{ steps.promotion.outputs.sha || github.run_id }}
+          path: production-artifacts/
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Check out evidence branch
+        if: always()
+        uses: actions/checkout@v4
+        with:
+          ref: production-evidence
+          path: evidence
+          fetch-depth: 0
+
+      - name: Publish durable production evidence
+        if: always()
+        shell: bash
+        env:
+          SOURCE_SHA: ${{ steps.source.outputs.sha }}
+          PRODUCTION_SHA: ${{ steps.promotion.outputs.sha }}
+          PRODUCTION_URL: ${{ steps.production.outputs.url }}
+          DISCOVERY_SOURCE: ${{ steps.production.outputs.source }}
+          PROMOTION_OUTCOME: ${{ steps.promotion.outcome }}
+          DISCOVERY_OUTCOME: ${{ steps.production.outcome }}
+          SMOKE_OUTCOME: ${{ steps.smoke.outcome }}
+          SCREENSHOT_OUTCOME: ${{ steps.screenshot.outcome }}
+          RUN_ID: ${{ github.run_id }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          mkdir -p evidence/production/beautiful-v3
+          node --input-type=module <<'NODE'
+          import { writeFileSync } from "node:fs";
+          let status = "success";
+          if (process.env.PROMOTION_OUTCOME !== "success") status = "promotion_failure";
+          else if (process.env.DISCOVERY_OUTCOME !== "success") status = "url_discovery_failure";
+          else if (process.env.SMOKE_OUTCOME !== "success") status = "protocol_verification_failure";
+          else if (process.env.SCREENSHOT_OUTCOME !== "success") status = "webkit_render_failure";
+          const result = {
+            status,
+            release: "beautiful-3d-v3",
+            sourceSha: process.env.SOURCE_SHA || null,
+            productionSha: process.env.PRODUCTION_SHA || null,
+            productionUrl: process.env.PRODUCTION_URL || null,
+            discoverySource: process.env.DISCOVERY_SOURCE || null,
+            promotionOutcome: process.env.PROMOTION_OUTCOME || null,
+            protocolOutcome: process.env.SMOKE_OUTCOME || null,
+            webkitOutcome: process.env.SCREENSHOT_OUTCOME || null,
+            workflowRunId: process.env.RUN_ID,
+            workflowRunUrl: `https://github.com/${process.env.REPOSITORY}/actions/runs/${process.env.RUN_ID}`,
+            verifiedAt: new Date().toISOString(),
+          };
+          writeFileSync(
+            "evidence/production/beautiful-v3/status.json",
+            `${JSON.stringify(result, null, 2)}\n`,
+          );
+          NODE
+          if [[ -s production-artifacts/title-iphone.png ]]; then
+            cp production-artifacts/title-iphone.png evidence/production/beautiful-v3/title-iphone.png
+          fi
+          cd evidence
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add production/beautiful-v3
+          if git diff --cached --quiet; then
+            exit 0
+          fi
+          git commit -m "Record beautiful 3D production verification"
+          pushed=false
+          for attempt in 1 2 3; do
+            if git push origin HEAD:production-evidence; then
+              pushed=true
+              break
+            fi
+            git pull --rebase origin production-evidence
+          done
+          [[ "$pushed" == "true" ]] || { echo "Could not publish production evidence."; exit 1; }
+
+      - name: Enforce verified production
+        if: always()
+        shell: bash
+        env:
+          PROMOTION_OUTCOME: ${{ steps.promotion.outcome }}
+          DISCOVERY_OUTCOME: ${{ steps.production.outcome }}
+          SMOKE_OUTCOME: ${{ steps.smoke.outcome }}
+          SCREENSHOT_OUTCOME: ${{ steps.screenshot.outcome }}
+        run: |
+          set -euo pipefail
+          [[ "$PROMOTION_OUTCOME" == "success" ]] || { echo "Production branch promotion failed."; exit 1; }
+          [[ "$DISCOVERY_OUTCOME" == "success" ]] || { echo "Cloudflare production URL was not discovered."; exit 1; }
+          [[ "$SMOKE_OUTCOME" == "success" ]] || { echo "Production API/WebSocket verification failed."; exit 1; }
+          [[ "$SCREENSHOT_OUTCOME" == "success" ]] || { echo "Production WebKit 3D render verification failed."; exit 1; }
