@@ -1,0 +1,144 @@
+name: AORI ROOM quality gates
+
+on:
+  pull_request:
+    branches: [source-direct-v1.2]
+  push:
+    branches: [source-direct-v1.2]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: aori-quality-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Unit, build, and local network smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.2.15
+
+      - name: Install locked dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Run unit tests
+        run: bun run test
+
+      - name: Type-check and build
+        env:
+          AORI_BUILD_SHA: ${{ github.sha }}
+        run: bun run build:app
+
+      - name: Start local Worker
+        shell: bash
+        run: |
+          set -euo pipefail
+          bunx wrangler dev --local --port 8787 > "$RUNNER_TEMP/wrangler.log" 2>&1 &
+          echo $! > "$RUNNER_TEMP/wrangler.pid"
+
+      - name: Wait for local Worker
+        shell: bash
+        run: |
+          set -euo pipefail
+          for attempt in {1..60}; do
+            if curl --fail --silent --show-error http://127.0.0.1:8787/ > /dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat "$RUNNER_TEMP/wrangler.log"
+          exit 1
+
+      - name: Exercise room and WebSocket protocol
+        env:
+          BASE_URL: http://127.0.0.1:8787
+          EXPECTED_SHA: ${{ github.sha }}
+          WAIT_FOR_RELEASE_MS: 0
+        run: bun run smoke:network
+
+      - name: Upload diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: local-verification-${{ github.run_id }}
+          path: |
+            dist/
+            ${{ runner.temp }}/wrangler.log
+          if-no-files-found: warn
+          retention-days: 7
+
+  production-smoke:
+    name: Verify deployed commit
+    needs: verify
+    if: github.event_name == 'push' && vars.PRODUCTION_BASE_URL != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Wait for this commit and exercise production
+        env:
+          BASE_URL: ${{ vars.PRODUCTION_BASE_URL }}
+          EXPECTED_SHA: ${{ github.sha }}
+          WAIT_FOR_RELEASE_MS: 900000
+          RELEASE_POLL_MS: 5000
+        run: node scripts/network-smoke.mjs
+
+      - name: Capture iPhone-sized production screenshot
+        shell: bash
+        env:
+          BASE_URL: ${{ vars.PRODUCTION_BASE_URL }}
+        run: |
+          set -euo pipefail
+          mkdir -p production-artifacts
+          npx --yes playwright@latest install --with-deps webkit
+          npx --yes playwright@latest screenshot \
+            --browser=webkit \
+            --device="iPhone 13" \
+            --wait-for-selector=".title-screen--v2" \
+            --wait-for-timeout=2500 \
+            "$BASE_URL" \
+            production-artifacts/title-iphone.png
+
+      - name: Upload production evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-evidence-${{ github.sha }}
+          path: production-artifacts/
+          if-no-files-found: warn
+          retention-days: 30
+
+  production-configuration-required:
+    name: Production URL configuration
+    needs: verify
+    if: github.event_name == 'push' && vars.PRODUCTION_BASE_URL == ''
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail until the production URL is configured
+        shell: bash
+        run: |
+          echo "PRODUCTION_BASE_URL is not configured. Add it under Settings → Secrets and variables → Actions → Variables." \
+            | tee -a "$GITHUB_STEP_SUMMARY"
+          exit 1
