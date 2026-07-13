@@ -1,4 +1,6 @@
 import { appendFileSync } from "node:fs";
+import { resolve } from "node:path";
+import { pathToFileURL } from "node:url";
 
 const SERVICE_NAME = "gpt-de-asobu";
 const APP_SERVICE = "aori-room";
@@ -226,4 +228,7 @@ async function main() {
   );
 }
 
-await main();
+const entryPath = process.argv[1] ? pathToFileURL(resolve(process.argv[1])).href : null;
+if (entryPath === import.meta.url) await main();
+
+export { collectUrls, isPublicHostname, normalizeCandidate, verifyCandidate };
