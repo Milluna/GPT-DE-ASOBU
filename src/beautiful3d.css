@@ -1,0 +1,93 @@
+/* AORI ROOM Beautiful 3D v3 */
+.character-showcase__visual.title-preview {
+  min-height: 360px;
+  isolation: isolate;
+}
+
+.title-preview__canvas {
+  position: absolute;
+  z-index: 3;
+  inset: -7% -4% -2%;
+  width: 108% !important;
+  height: 109% !important;
+  opacity: 0;
+  transform: translate3d(0, 10px, 0) scale(0.975);
+  filter: drop-shadow(0 28px 34px rgba(8, 4, 20, 0.38));
+  transition: opacity 460ms ease, transform 620ms cubic-bezier(.18,.78,.2,1);
+  pointer-events: none;
+}
+
+.title-preview--ready .title-preview__canvas {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+}
+
+.title-preview--ready .hero-character {
+  opacity: 0;
+  transform: translateX(-50%) scale(0.96);
+  transition: opacity 300ms ease, transform 400ms ease;
+}
+
+.title-preview--switching .title-preview__canvas {
+  animation: beautiful-character-switch 520ms cubic-bezier(.2,.8,.2,1);
+}
+
+.title-preview::after {
+  position: absolute;
+  z-index: 2;
+  right: 13px;
+  top: 12px;
+  padding: 5px 8px;
+  border: 1px solid rgba(255,255,255,.16);
+  border-radius: 999px;
+  color: rgba(255,255,255,.7);
+  background: rgba(17,12,31,.36);
+  content: "LIVE 3D";
+  font-size: 8px;
+  font-weight: 1000;
+  letter-spacing: .16em;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity 300ms ease 180ms, transform 300ms ease 180ms;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  pointer-events: none;
+}
+
+.title-preview--ready::after {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.title-preview--failed::after {
+  display: none;
+}
+
+.game-canvas {
+  filter: saturate(1.055) contrast(1.018);
+}
+
+@keyframes beautiful-character-switch {
+  0% { opacity: .58; transform: translate3d(-8px, 5px, 0) scale(.965); }
+  46% { opacity: 1; transform: translate3d(5px, -3px, 0) scale(1.018); }
+  100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+}
+
+@media (min-width: 720px) {
+  .character-showcase__visual.title-preview {
+    min-height: 470px;
+  }
+  .title-preview__canvas {
+    inset: -5% -7% -3%;
+    width: 114% !important;
+    height: 108% !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .title-preview__canvas,
+  .title-preview--switching .title-preview__canvas {
+    animation: none !important;
+    transition-duration: .01ms !important;
+  }
+}
