@@ -9,6 +9,7 @@ on:
 
 permissions:
   contents: read
+  deployments: read
 
 concurrency:
   group: aori-quality-${{ github.workflow }}-${{ github.ref }}
@@ -83,11 +84,11 @@ jobs:
           retention-days: 7
 
   production-smoke:
-    name: Verify deployed commit
+    name: Discover and verify deployed commit
     needs: verify
-    if: github.event_name == 'push' && vars.PRODUCTION_BASE_URL != ''
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 40
     steps:
       - name: Check out source
         uses: actions/checkout@v4
@@ -97,9 +98,20 @@ jobs:
         with:
           node-version: 22
 
+      - name: Discover the production URL
+        id: production
+        env:
+          OVERRIDE_URL: ${{ vars.PRODUCTION_BASE_URL }}
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          SOURCE_REF: source-direct-v1.2
+          WAIT_FOR_DISCOVERY_MS: 300000
+          DISCOVERY_POLL_MS: 10000
+        run: node scripts/resolve-production-url.mjs
+
       - name: Wait for this commit and exercise production
         env:
-          BASE_URL: ${{ vars.PRODUCTION_BASE_URL }}
+          BASE_URL: ${{ steps.production.outputs.url }}
           EXPECTED_SHA: ${{ github.sha }}
           WAIT_FOR_RELEASE_MS: 900000
           RELEASE_POLL_MS: 5000
@@ -108,7 +120,7 @@ jobs:
       - name: Capture iPhone-sized production screenshot
         shell: bash
         env:
-          BASE_URL: ${{ vars.PRODUCTION_BASE_URL }}
+          BASE_URL: ${{ steps.production.outputs.url }}
         run: |
           set -euo pipefail
           mkdir -p production-artifacts
@@ -121,6 +133,23 @@ jobs:
             "$BASE_URL" \
             production-artifacts/title-iphone.png
 
+      - name: Record production summary
+        shell: bash
+        env:
+          BASE_URL: ${{ steps.production.outputs.url }}
+          DISCOVERY_SOURCE: ${{ steps.production.outputs.source }}
+          EXPECTED_SHA: ${{ github.sha }}
+        run: |
+          {
+            echo "## AORI ROOM production verification"
+            echo ""
+            echo "- URL: $BASE_URL"
+            echo "- Discovered from: $DISCOVERY_SOURCE"
+            echo "- Verified source: \`$EXPECTED_SHA\`"
+            echo "- API, WebSocket, character sync, reconnect: passed"
+            echo "- WebKit iPhone-sized title render: captured"
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Upload production evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -129,16 +158,3 @@ jobs:
           path: production-artifacts/
           if-no-files-found: warn
           retention-days: 30
-
-  production-configuration-required:
-    name: Production URL configuration
-    needs: verify
-    if: github.event_name == 'push' && vars.PRODUCTION_BASE_URL == ''
-    runs-on: ubuntu-latest
-    steps:
-      - name: Fail until the production URL is configured
-        shell: bash
-        run: |
-          echo "PRODUCTION_BASE_URL is not configured. Add it under Settings → Secrets and variables → Actions → Variables." \
-            | tee -a "$GITHUB_STEP_SUMMARY"
-          exit 1
