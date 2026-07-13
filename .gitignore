@@ -9,3 +9,5 @@ dist/
 .dev.vars
 
 *.tsbuildinfo
+public/release.json
+production-artifacts/
