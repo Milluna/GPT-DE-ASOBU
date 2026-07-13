@@ -41,7 +41,7 @@ jobs:
         run: bun run test
 
       - name: Test production URL resolver
-        run: node --test scripts/resolve-production-url.test.mjs
+        run: node --test scripts/resolve-production-url-selftest.mjs
 
       - name: Type-check and build
         env:
