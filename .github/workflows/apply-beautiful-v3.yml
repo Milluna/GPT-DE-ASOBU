@@ -1,0 +1,78 @@
+name: Apply beautiful 3D v3
+
+on:
+  push:
+    branches: [agent/beautiful-3d-v3]
+    paths:
+      - .github/beautiful-v3-trigger
+
+permissions:
+  contents: write
+
+concurrency:
+  group: aori-beautiful-v3-apply
+  cancel-in-progress: false
+
+jobs:
+  apply:
+    name: Materialize and verify beautiful 3D v3
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out feature branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Reassemble and verify release payload
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat release/v3.0/payload/part-* > "$RUNNER_TEMP/beautiful-v3.tar.xz.b64"
+          printf '%s  %s\n' \
+            '1787328c5195e8e3217bb77b769eadfeaaca8c4a8d2df15a477132725da9c1d1' \
+            "$RUNNER_TEMP/beautiful-v3.tar.xz.b64" | sha256sum -c -
+          base64 --decode "$RUNNER_TEMP/beautiful-v3.tar.xz.b64" \
+            > "$RUNNER_TEMP/beautiful-v3.tar.xz"
+          printf '%s  %s\n' \
+            '268d1ed5d6866e0f1563b0de3649403360f4cb272541ceebefe93f9ded9a93c0' \
+            "$RUNNER_TEMP/beautiful-v3.tar.xz" | sha256sum -c -
+          tar -xJf "$RUNNER_TEMP/beautiful-v3.tar.xz" -C .
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.2.15
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Run complete source verification
+        run: |
+          set -euo pipefail
+          bun run test
+          bun run build:app
+        env:
+          AORI_BUILD_SHA: ${{ github.sha }}
+
+      - name: Commit verified source and remove transport files
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf release/v3.0/payload
+          rm -f .github/beautiful-v3-trigger
+          rm -f .github/workflows/apply-beautiful-v3.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A \
+            package.json \
+            bun.lock \
+            src \
+            scripts \
+            .github/workflows/quality-gates.yml \
+            .github/workflows/apply-beautiful-v3.yml \
+            .github/beautiful-v3-trigger \
+            docs/BEAUTIFUL_3D_V3.md \
+            release/v3.0/payload
+          git commit -m "Add beautiful live 3D characters and title preview"
+          git push origin HEAD:agent/beautiful-3d-v3
