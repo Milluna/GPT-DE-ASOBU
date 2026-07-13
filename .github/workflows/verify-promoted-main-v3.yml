@@ -1,0 +1,153 @@
+name: Verify promoted main beautiful 3D v3
+
+on:
+  pull_request:
+    branches: [source-direct-v1.2]
+    paths:
+      - .github/verify-promoted-main-trigger
+
+permissions:
+  contents: write
+  deployments: read
+  checks: read
+  statuses: read
+  pages: read
+
+concurrency:
+  group: aori-verify-promoted-main-v3
+  cancel-in-progress: false
+
+jobs:
+  verify-production:
+    if: github.head_ref == 'agent/production-discovery-v2' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Check out enhanced resolver branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Discover promoted production
+        id: production
+        env:
+          OVERRIDE_URL: ${{ vars.PRODUCTION_BASE_URL }}
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          SOURCE_REF: main
+          SOURCE_SHA: 869bb98c0fbf1418a4330610801ad1f49e5a4c91
+          WAIT_FOR_DISCOVERY_MS: 600000
+          DISCOVERY_POLL_MS: 10000
+          PROBE_TIMEOUT_MS: 12000
+        run: node scripts/resolve-production-url.mjs
+
+      - name: Exercise promoted production protocol
+        id: smoke
+        env:
+          BASE_URL: ${{ steps.production.outputs.url }}
+          EXPECTED_SHA: 869bb98c0fbf1418a4330610801ad1f49e5a4c91
+          WAIT_FOR_RELEASE_MS: 300000
+          RELEASE_POLL_MS: 5000
+        run: node scripts/network-smoke.mjs
+
+      - name: Capture promoted beautiful 3D title
+        id: screenshot
+        shell: bash
+        env:
+          BASE_URL: ${{ steps.production.outputs.url }}
+        run: |
+          set -euo pipefail
+          mkdir -p production-artifacts
+          npx --yes playwright@latest install --with-deps webkit
+          npx --yes playwright@latest screenshot \
+            --browser=webkit \
+            --device="iPhone 13" \
+            --wait-for-selector=".title-preview--ready" \
+            --wait-for-timeout=4000 \
+            "$BASE_URL" \
+            production-artifacts/title-iphone.png
+          test -s production-artifacts/title-iphone.png
+
+      - name: Check out evidence branch
+        if: always()
+        uses: actions/checkout@v4
+        with:
+          ref: production-evidence
+          path: evidence
+          fetch-depth: 0
+
+      - name: Publish verification evidence
+        if: always()
+        shell: bash
+        env:
+          PRODUCTION_URL: ${{ steps.production.outputs.url }}
+          DISCOVERY_SOURCE: ${{ steps.production.outputs.source }}
+          DISCOVERY_OUTCOME: ${{ steps.production.outcome }}
+          SMOKE_OUTCOME: ${{ steps.smoke.outcome }}
+          SCREENSHOT_OUTCOME: ${{ steps.screenshot.outcome }}
+          RUN_ID: ${{ github.run_id }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          mkdir -p evidence/production/beautiful-v3
+          node --input-type=module <<'NODE'
+          import { writeFileSync } from "node:fs";
+          let status = "success";
+          if (process.env.DISCOVERY_OUTCOME !== "success") status = "url_discovery_failure";
+          else if (process.env.SMOKE_OUTCOME !== "success") status = "protocol_verification_failure";
+          else if (process.env.SCREENSHOT_OUTCOME !== "success") status = "webkit_render_failure";
+          const result = {
+            status,
+            release: "beautiful-3d-v3",
+            productionSha: "869bb98c0fbf1418a4330610801ad1f49e5a4c91",
+            productionUrl: process.env.PRODUCTION_URL || null,
+            discoverySource: process.env.DISCOVERY_SOURCE || null,
+            protocolOutcome: process.env.SMOKE_OUTCOME || null,
+            webkitOutcome: process.env.SCREENSHOT_OUTCOME || null,
+            workflowRunId: process.env.RUN_ID,
+            workflowRunUrl: `https://github.com/${process.env.REPOSITORY}/actions/runs/${process.env.RUN_ID}`,
+            verifiedAt: new Date().toISOString(),
+          };
+          writeFileSync(
+            "evidence/production/beautiful-v3/status.json",
+            `${JSON.stringify(result, null, 2)}\n`,
+          );
+          NODE
+          if [[ -s production-artifacts/title-iphone.png ]]; then
+            cp production-artifacts/title-iphone.png evidence/production/beautiful-v3/title-iphone.png
+          fi
+          cd evidence
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add production/beautiful-v3
+          if ! git diff --cached --quiet; then
+            git commit -m "Record promoted beautiful 3D production verification"
+            pushed=false
+            for attempt in 1 2 3; do
+              if git push origin HEAD:production-evidence; then
+                pushed=true
+                break
+              fi
+              git pull --rebase origin production-evidence
+            done
+            [[ "$pushed" == "true" ]] || exit 1
+          fi
+
+      - name: Enforce verified production
+        if: always()
+        shell: bash
+        env:
+          DISCOVERY_OUTCOME: ${{ steps.production.outcome }}
+          SMOKE_OUTCOME: ${{ steps.smoke.outcome }}
+          SCREENSHOT_OUTCOME: ${{ steps.screenshot.outcome }}
+        run: |
+          set -euo pipefail
+          [[ "$DISCOVERY_OUTCOME" == "success" ]] || { echo "Production URL discovery failed."; exit 1; }
+          [[ "$SMOKE_OUTCOME" == "success" ]] || { echo "Production protocol verification failed."; exit 1; }
+          [[ "$SCREENSHOT_OUTCOME" == "success" ]] || { echo "Production WebKit render verification failed."; exit 1; }
