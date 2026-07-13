@@ -1,19 +1,25 @@
 {
   "targetSha": "869bb98c0fbf1418a4330610801ad1f49e5a4c91",
-  "recordedAt": "2026-07-13T12:44:25.439Z",
+  "recordedAt": "2026-07-13T12:46:32.510Z",
   "deployments": [],
   "checkRuns": [
     {
+      "id": 86815434084,
+      "externalId": "e83a2570-f29b-4ce5-9750-6ef6c8d0275d",
       "name": "Workers Builds: gpt-de-asobu",
       "app": "cloudflare-workers-and-pages",
       "status": "completed",
       "conclusion": "success",
       "detailsUrl": "https://dash.cloudflare.com/d068687e2a79aee7f87e031a93b6d54b/workers/services/view/gpt-de-asobu/production/builds/e83a2570-f29b-4ce5-9750-6ef6c8d0275d",
+      "startedAt": "2026-07-13T12:26:10Z",
+      "completedAt": "2026-07-13T12:26:10Z",
       "output": {
         "title": "Workers Builds: gpt-de-asobu",
         "summary": "\nBuild ID: [e83a2570-f29b-4ce5-9750-6ef6c8d0275d](https://dash.cloudflare.com/d068687e2a79aee7f87e031a93b6d54b/workers/services/view/gpt-de-asobu/production/builds/e83a2570-f29b-4ce5-9750-6ef6c8d0275d)\nScript: [gpt-de-asobu](https://dash.cloudflare.com/d068687e2a79aee7f87e031a93b6d54b/workers/services/view/gpt-de-asobu/production)\nVersion ID: e84a0782-62af-4960-94d1-1ffb4a5d558f\n",
-        "text": null
+        "text": null,
+        "annotationsCount": 0
       },
+      "annotations": [],
       "urls": [
         "https://api.github.com/repos/Milluna/GPT-DE-ASOBU/check-runs/86815434084",
         "https://github.com/Milluna/GPT-DE-ASOBU/runs/86815434084",
