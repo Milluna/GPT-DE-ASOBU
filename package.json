@@ -1,8 +1,8 @@
 {
   "name": "gpt-de-asobu",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "scripts": {
-    "test": "vitest run",
+    "test": "vitest run && node scripts/visual-contract.mjs",
     "dev": "vite --host 0.0.0.0",
     "dev:worker": "wrangler dev --local --port 8787",
     "dev:full": "npm run build && npm run dev:worker",
@@ -17,7 +17,7 @@
   "keywords": [],
   "author": "",
   "license": "UNLICENSED",
-  "description": "Two-person mobile 3D communication room prototype for iPhone Safari.",
+  "description": "Two-person mobile 3D communication room with original beautiful chibi avatars for iPhone Safari.",
   "dependencies": {
     "three": "0.185.1"
   },

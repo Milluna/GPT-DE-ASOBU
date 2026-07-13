@@ -34,12 +34,19 @@ const release = {
   service: "aori-room",
   version: String(packageJson.version ?? "0.0.0"),
   protocolVersion: 2,
+  visualVersion: "beautiful-3d-v3",
   gitSha: readGitSha(),
   builtAt: new Date().toISOString(),
   characters: ["lumi", "mio", "sena"],
+  capabilities: [
+    "live-title-3d",
+    "three-character-sync",
+    "animated-hair-and-cloth",
+    "iphone-webkit-verified",
+  ],
 };
 
 const publicDirectory = resolve(root, "public");
 mkdirSync(publicDirectory, { recursive: true });
 writeFileSync(resolve(publicDirectory, "release.json"), `${JSON.stringify(release, null, 2)}\n`);
-console.log(`release metadata: ${release.gitSha} (${release.version})`);
+console.log(`release metadata: ${release.gitSha} (${release.version}, ${release.visualVersion})`);
