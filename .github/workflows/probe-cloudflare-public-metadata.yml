@@ -1,0 +1,70 @@
+name: Probe Cloudflare public metadata
+
+on:
+  pull_request:
+    branches: [source-direct-v1.2]
+    paths:
+      - .github/probe-cloudflare-public-metadata-trigger
+
+permissions:
+  contents: write
+
+jobs:
+  probe:
+    if: github.head_ref == 'agent/production-discovery-v2' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Probe unauthenticated Cloudflare metadata endpoints
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p output
+          node --input-type=module <<'NODE'
+          import { writeFileSync } from 'node:fs';
+          const account = 'd068687e2a79aee7f87e031a93b6d54b';
+          const service = 'gpt-de-asobu';
+          const endpoints = [
+            `/accounts/${account}/workers/subdomain`,
+            `/accounts/${account}/workers/services/${service}`,
+            `/accounts/${account}/workers/services/${service}/environments/production`,
+            `/accounts/${account}/workers/services/${service}/environments/production/routes`,
+            `/accounts/${account}/workers/scripts/${service}/settings`,
+          ];
+          const result = { recordedAt: new Date().toISOString(), endpoints: [] };
+          for (const path of endpoints) {
+            const url = `https://api.cloudflare.com/client/v4${path}`;
+            try {
+              const response = await fetch(url, { headers: { 'user-agent': 'aori-room-public-probe/1' } });
+              const text = await response.text();
+              result.endpoints.push({
+                path,
+                status: response.status,
+                contentType: response.headers.get('content-type'),
+                body: text.slice(0, 4000),
+              });
+            } catch (error) {
+              result.endpoints.push({ path, error: String(error) });
+            }
+          }
+          writeFileSync('output/cloudflare-public-metadata.json', JSON.stringify(result, null, 2) + '\n');
+          NODE
+
+      - uses: actions/checkout@v4
+        with:
+          ref: production-evidence
+          path: evidence
+          fetch-depth: 0
+
+      - name: Publish probe result
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p evidence/production/beautiful-v3
+          cp output/cloudflare-public-metadata.json evidence/production/beautiful-v3/cloudflare-public-metadata.json
+          cd evidence
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add production/beautiful-v3/cloudflare-public-metadata.json
+          git commit -m "Record Cloudflare public metadata probe"
+          git push origin HEAD:production-evidence
