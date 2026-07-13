@@ -52,13 +52,30 @@ jobs:
       - name: Install locked dependencies
         run: bun install --frozen-lockfile
 
-      - name: Run motion, visual, type, and production build checks
+      - name: Run motion and visual contract tests
+        shell: bash
+        run: |
+          set -o pipefail
+          bun run test 2>&1 | tee source-test.log
+
+      - name: Type-check and build production bundle
+        shell: bash
         env:
           AORI_BUILD_SHA: ${{ github.sha }}
         run: |
-          set -euo pipefail
-          bun run test
-          bun run build:app
+          set -o pipefail
+          bun run build:app 2>&1 | tee source-build.log
+
+      - name: Upload source diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: taunt-source-diagnostics-${{ github.run_id }}
+          path: |
+            source-test.log
+            source-build.log
+          if-no-files-found: warn
+          retention-days: 7
 
   production-verification:
     name: Exercise canonical Workers production
