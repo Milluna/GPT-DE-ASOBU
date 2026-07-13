@@ -12,19 +12,30 @@ test("accepts only normalized public HTTPS production candidates", () => {
     url: "https://example.com/app",
     source: "test",
   });
+  assert.deepEqual(
+    normalizeCandidate("https://gpt-de-asobu.example.workers.dev/).", "check output"),
+    {
+      url: "https://gpt-de-asobu.example.workers.dev",
+      source: "check output",
+    },
+  );
   assert.equal(normalizeCandidate("http://example.com", "test"), null);
   assert.equal(normalizeCandidate("https://127.0.0.1", "test"), null);
   assert.equal(normalizeCandidate("https://192.168.1.4", "test"), null);
   assert.equal(normalizeCandidate("https://github.com/Milluna/GPT-DE-ASOBU", "test"), null);
+  assert.equal(normalizeCandidate("https://dash.cloudflare.com/example", "test"), null);
   assert.equal(isPublicHostname("gpt-de-asobu.milluna.workers.dev"), true);
 });
 
-test("extracts nested HTTPS deployment URLs", () => {
+test("extracts nested HTTPS deployment and check-output URLs", () => {
   const urls = [];
   collectUrls(
     {
       payload: {
         message: "deployed to https://gpt-de-asobu.example.workers.dev and https://example.com/app",
+      },
+      output: {
+        summary: "[Open deployment](https://preview.example.workers.dev/)",
       },
     },
     urls,
@@ -32,6 +43,7 @@ test("extracts nested HTTPS deployment URLs", () => {
   assert.deepEqual(urls, [
     "https://gpt-de-asobu.example.workers.dev",
     "https://example.com/app",
+    "https://preview.example.workers.dev/)",
   ]);
 });
 
