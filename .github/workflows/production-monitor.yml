@@ -1,0 +1,132 @@
+name: AORI ROOM scheduled production monitor
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/production-monitor.yml
+  schedule:
+    - cron: "23 */6 * * *"
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: Optional HTTPS production URL override
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  deployments: read
+
+concurrency:
+  group: aori-production-monitor
+  cancel-in-progress: false
+
+jobs:
+  smoke:
+    name: Discover and exercise current production
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out deployable source
+        uses: actions/checkout@v4
+        with:
+          ref: source-direct-v1.2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Resolve source revision
+        id: revision
+        shell: bash
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Discover production URL
+        id: production
+        env:
+          OVERRIDE_URL: ${{ inputs.base_url }}
+          PRODUCTION_BASE_URL: ${{ vars.PRODUCTION_BASE_URL }}
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          SOURCE_REF: source-direct-v1.2
+          WAIT_FOR_DISCOVERY_MS: 120000
+          DISCOVERY_POLL_MS: 10000
+        run: node scripts/resolve-production-url.mjs
+
+      - name: Exercise current production
+        env:
+          BASE_URL: ${{ steps.production.outputs.url }}
+          EXPECTED_SHA: ${{ steps.revision.outputs.sha }}
+          WAIT_FOR_RELEASE_MS: 0
+        run: node scripts/network-smoke.mjs
+
+      - name: Record success summary
+        shell: bash
+        env:
+          BASE_URL: ${{ steps.production.outputs.url }}
+          DISCOVERY_SOURCE: ${{ steps.production.outputs.source }}
+          EXPECTED_SHA: ${{ steps.revision.outputs.sha }}
+        run: |
+          {
+            echo "## AORI ROOM production check"
+            echo ""
+            echo "- URL: $BASE_URL"
+            echo "- Discovered from: $DISCOVERY_SOURCE"
+            echo "- Expected source: \`$EXPECTED_SHA\`"
+            echo "- API, WebSocket, character sync, reconnect: passed"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Check out monitor status branch
+        if: always()
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: status-repo
+          fetch-depth: 0
+
+      - name: Publish monitor status
+        if: always()
+        shell: bash
+        env:
+          MONITOR_STATUS: ${{ job.status }}
+          BASE_URL: ${{ steps.production.outputs.url }}
+          DISCOVERY_SOURCE: ${{ steps.production.outputs.source }}
+          EXPECTED_SHA: ${{ steps.revision.outputs.sha }}
+          RUN_ID: ${{ github.run_id }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          cd status-repo
+          mkdir -p release/production-monitor
+          node --input-type=module <<'NODE'
+          import { writeFileSync } from "node:fs";
+          const result = {
+            status: process.env.MONITOR_STATUS,
+            productionUrl: process.env.BASE_URL || null,
+            discoverySource: process.env.DISCOVERY_SOURCE || null,
+            expectedSourceSha: process.env.EXPECTED_SHA || null,
+            workflowRunId: process.env.RUN_ID,
+            workflowRunUrl: `https://github.com/${process.env.REPOSITORY}/actions/runs/${process.env.RUN_ID}`,
+            recordedAt: new Date().toISOString(),
+          };
+          writeFileSync(
+            "release/production-monitor/status.json",
+            `${JSON.stringify(result, null, 2)}\n`,
+          );
+          NODE
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add release/production-monitor/status.json
+          if git diff --cached --quiet; then
+            exit 0
+          fi
+          git commit -m "Record production monitor status: $MONITOR_STATUS [skip ci]"
+          for attempt in 1 2; do
+            if git push origin HEAD:main; then
+              exit 0
+            fi
+            git pull --rebase origin main
+          done
+          exit 1
