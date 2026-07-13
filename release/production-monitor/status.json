@@ -1,0 +1,9 @@
+{
+  "status": "failure",
+  "productionUrl": null,
+  "discoverySource": null,
+  "expectedSourceSha": "f9edc1e9fbab377c5019901eeb205b30c4b6a2ec",
+  "workflowRunId": "29242368528",
+  "workflowRunUrl": "https://github.com/Milluna/GPT-DE-ASOBU/actions/runs/29242368528",
+  "recordedAt": "2026-07-13T10:21:56.058Z"
+}
