@@ -35,6 +35,7 @@ const release = {
   version: String(packageJson.version ?? "0.0.0"),
   protocolVersion: 2,
   visualVersion: "beautiful-3d-v3",
+  tauntMotionProfile: "low-stance-taunts-v1",
   gitSha: readGitSha(),
   builtAt: new Date().toISOString(),
   characters: ["lumi", "mio", "sena"],
@@ -42,6 +43,8 @@ const release = {
     "live-title-3d",
     "three-character-sync",
     "animated-hair-and-cloth",
+    "low-stance-side-step",
+    "instant-crouch-racket-swing",
     "iphone-webkit-verified",
   ],
 };
@@ -49,4 +52,6 @@ const release = {
 const publicDirectory = resolve(root, "public");
 mkdirSync(publicDirectory, { recursive: true });
 writeFileSync(resolve(publicDirectory, "release.json"), `${JSON.stringify(release, null, 2)}\n`);
-console.log(`release metadata: ${release.gitSha} (${release.version}, ${release.visualVersion})`);
+console.log(
+  `release metadata: ${release.gitSha} (${release.version}, ${release.visualVersion}, ${release.tauntMotionProfile})`,
+);
