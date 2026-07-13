@@ -1,0 +1,124 @@
+name: Discover Workers public domain
+
+on:
+  push:
+    branches: [production-evidence]
+    paths:
+      - .github/domain-discovery-trigger
+
+permissions:
+  contents: write
+
+concurrency:
+  group: aori-workers-domain-discovery
+  cancel-in-progress: true
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: production-evidence
+          fetch-depth: 0
+
+      - name: Probe public discovery sources and likely Workers hostnames
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p production/beautiful-v3
+          node --input-type=module <<'NODE'
+          import { writeFileSync } from 'node:fs';
+          const service = 'gpt-de-asobu';
+          const accountId = 'd068687e2a79aee7f87e031a93b6d54b';
+          const versionId = 'e84a0782-62af-4960-94d1-1ffb4a5d558f';
+          const buildId = 'e83a2570-f29b-4ce5-9750-6ef6c8d0275d';
+          const result = { recordedAt: new Date().toISOString(), probes: [], discoveries: [] };
+          async function fetchProbe(url, init = {}) {
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), 20000);
+            try {
+              const response = await fetch(url, {
+                ...init,
+                redirect: 'follow',
+                signal: controller.signal,
+                headers: { 'user-agent': 'aori-room-domain-discovery/1', ...(init.headers ?? {}) },
+              });
+              const text = await response.text();
+              return {
+                requestedUrl: url,
+                finalUrl: response.url,
+                status: response.status,
+                contentType: response.headers.get('content-type'),
+                server: response.headers.get('server'),
+                cfRay: response.headers.get('cf-ray'),
+                body: text.slice(0, 12000),
+              };
+            } catch (error) {
+              return { requestedUrl: url, error: String(error) };
+            } finally {
+              clearTimeout(timer);
+            }
+          }
+          const guesses = new Set([
+            'milluna',
+            'milluna-github',
+            'milluna169899309',
+            'milluna-169899309',
+            accountId,
+            accountId.slice(0, 8),
+            accountId.slice(-8),
+            service,
+            `${service}-milluna`,
+            'gpt-de-asobu-milluna',
+          ]);
+          for (const subdomain of guesses) {
+            for (const host of [
+              `${service}.${subdomain}.workers.dev`,
+              `${versionId}-${service}.${subdomain}.workers.dev`,
+              `${versionId.slice(0, 8)}-${service}.${subdomain}.workers.dev`,
+            ]) {
+              const probe = await fetchProbe(`https://${host}/release.json`);
+              const isAori = /"service"\s*:\s*"aori-room"|AORI\s*ROOM/i.test(probe.body ?? '');
+              result.probes.push({ host, ...probe, isAori });
+              if (isAori) result.discoveries.push({ host, source: 'hostname guess', probe });
+            }
+          }
+          const sources = [
+            `https://crt.sh/?q=${encodeURIComponent(service)}&output=json`,
+            `https://crt.sh/?q=${encodeURIComponent('%.' + service + '.%')}&output=json`,
+            `https://web.archive.org/cdx/search/cdx?url=${encodeURIComponent('*' + service + '*')}&output=json&filter=statuscode:200&collapse=urlkey&fl=original,timestamp,statuscode,mimetype&limit=1000`,
+            `https://urlscan.io/api/v1/search/?q=${encodeURIComponent(service)}`,
+            `https://index.commoncrawl.org/collinfo.json`,
+            `https://api.github.com/search/code?q=${encodeURIComponent('"' + service + '"')}`,
+            `https://api.github.com/search/commits?q=${encodeURIComponent(buildId)}`,
+          ];
+          for (const url of sources) result.probes.push(await fetchProbe(url));
+          const commonCrawlInfo = result.probes.find((entry) => entry.requestedUrl === 'https://index.commoncrawl.org/collinfo.json');
+          if (commonCrawlInfo?.status === 200) {
+            try {
+              const indexes = JSON.parse(commonCrawlInfo.body).slice(0, 5);
+              for (const index of indexes) {
+                const url = `${index['cdx-api']}?url=${encodeURIComponent('*' + service + '*')}&output=json&filter=status:200&collapse=urlkey`;
+                result.probes.push(await fetchProbe(url));
+              }
+            } catch (error) {
+              result.probes.push({ source: 'commoncrawl-parse', error: String(error) });
+            }
+          }
+          writeFileSync(
+            'production/beautiful-v3/domain-discovery.json',
+            JSON.stringify(result, null, 2) + '\n',
+          );
+          NODE
+
+      - name: Commit discovery record
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add production/beautiful-v3/domain-discovery.json
+          git commit -m "Record Workers domain discovery results [skip ci]"
+          git push origin HEAD:production-evidence
