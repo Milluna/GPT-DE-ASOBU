@@ -1,17 +1,22 @@
 name: AORI ROOM scheduled production monitor
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/production-monitor.yml
   schedule:
     - cron: "23 */6 * * *"
   workflow_dispatch:
     inputs:
       base_url:
-        description: Full HTTPS production URL (overrides the repository variable)
+        description: Optional HTTPS production URL override
         required: false
         type: string
 
 permissions:
   contents: read
+  deployments: read
 
 concurrency:
   group: aori-production-monitor
@@ -19,10 +24,9 @@ concurrency:
 
 jobs:
   smoke:
-    name: Scheduled API and WebSocket smoke
-    if: vars.PRODUCTION_BASE_URL != '' || (github.event_name == 'workflow_dispatch' && inputs.base_url != '')
+    name: Discover and exercise current production
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - name: Check out deployable source
         uses: actions/checkout@v4
@@ -39,9 +43,21 @@ jobs:
         shell: bash
         run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
+      - name: Discover production URL
+        id: production
+        env:
+          OVERRIDE_URL: ${{ inputs.base_url }}
+          PRODUCTION_BASE_URL: ${{ vars.PRODUCTION_BASE_URL }}
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          SOURCE_REF: source-direct-v1.2
+          WAIT_FOR_DISCOVERY_MS: 120000
+          DISCOVERY_POLL_MS: 10000
+        run: node scripts/resolve-production-url.mjs
+
       - name: Exercise current production
         env:
-          BASE_URL: ${{ inputs.base_url || vars.PRODUCTION_BASE_URL }}
+          BASE_URL: ${{ steps.production.outputs.url }}
           EXPECTED_SHA: ${{ steps.revision.outputs.sha }}
           WAIT_FOR_RELEASE_MS: 0
         run: node scripts/network-smoke.mjs
@@ -49,25 +65,15 @@ jobs:
       - name: Record success summary
         shell: bash
         env:
-          BASE_URL: ${{ inputs.base_url || vars.PRODUCTION_BASE_URL }}
+          BASE_URL: ${{ steps.production.outputs.url }}
+          DISCOVERY_SOURCE: ${{ steps.production.outputs.source }}
           EXPECTED_SHA: ${{ steps.revision.outputs.sha }}
         run: |
           {
             echo "## AORI ROOM production check"
             echo ""
             echo "- URL: $BASE_URL"
+            echo "- Discovered from: $DISCOVERY_SOURCE"
             echo "- Expected source: \`$EXPECTED_SHA\`"
             echo "- API, WebSocket, character sync, reconnect: passed"
           } >> "$GITHUB_STEP_SUMMARY"
-
-  configuration-required:
-    name: Production URL configuration
-    if: vars.PRODUCTION_BASE_URL == '' && !(github.event_name == 'workflow_dispatch' && inputs.base_url != '')
-    runs-on: ubuntu-latest
-    steps:
-      - name: Fail until the repository variable is configured
-        shell: bash
-        run: |
-          echo "PRODUCTION_BASE_URL is not configured. Add it under Settings → Secrets and variables → Actions → Variables." \
-            | tee -a "$GITHUB_STEP_SUMMARY"
-          exit 1
