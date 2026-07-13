@@ -1,8 +1,39 @@
 {
-  "name": "aori-room-cloudflare-deploy",
-  "private": true,
+  "name": "gpt-de-asobu",
+  "version": "3.0.0",
   "scripts": {
-    "build": "rm -rf app && mkdir app && unzip -q aori-room-source.zip -d app && node fix-apply-v1.1.mjs && node apply-v1.1.mjs app && node apply-v1.2.mjs app && cd app && rm -f package-lock.json && bun install && bun run test && bun run build",
-    "deploy": "cd app && bunx wrangler deploy"
-  }
+    "test": "vitest run && node scripts/visual-contract.mjs",
+    "dev": "vite --host 0.0.0.0",
+    "dev:worker": "wrangler dev --local --port 8787",
+    "dev:full": "npm run build && npm run dev:worker",
+    "build": "npm run test && npm run build:app",
+    "deploy": "bunx wrangler deploy",
+    "preview": "vite preview --host 0.0.0.0",
+    "smoke:network": "node scripts/network-smoke.mjs",
+    "smoke:production": "node scripts/network-smoke.mjs",
+    "check": "npm run test && npm run build:app",
+    "build:app": "node scripts/write-release-meta.mjs && tsc -b --pretty false && vite build"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "UNLICENSED",
+  "description": "Two-person mobile 3D communication room with original beautiful chibi avatars for iPhone Safari.",
+  "dependencies": {
+    "three": "0.185.1"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "5.20260712.1",
+    "@types/node": "26.1.1",
+    "@types/three": "0.185.1",
+    "typescript": "7.0.2",
+    "vite": "8.1.4",
+    "vitest": "4.1.10",
+    "wrangler": "4.110.0"
+  },
+  "type": "module",
+  "private": true,
+  "engines": {
+    "node": ">=22"
+  },
+  "packageManager": "bun@1.2.15"
 }
