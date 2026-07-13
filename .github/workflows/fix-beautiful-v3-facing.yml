@@ -1,0 +1,67 @@
+name: Fix beautiful 3D title facing
+
+on:
+  pull_request:
+    branches: [source-direct-v1.2]
+    paths:
+      - .github/v3-facing-trigger
+
+permissions:
+  contents: write
+
+jobs:
+  fix-facing:
+    if: github.head_ref == 'agent/beautiful-3d-v3' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+
+      - name: Turn the title avatar toward the camera
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('src/titlePreview.ts')
+          text = path.read_text()
+          replacements = {
+              'this.avatar.root.rotation.y = Math.PI;': 'this.avatar.root.rotation.y = 0;',
+              'yaw: Math.PI,': 'yaw: 0,',
+              'this.avatar.root.rotation.y = Math.PI + Math.sin(time * 0.52) * 0.13;': 'this.avatar.root.rotation.y = Math.sin(time * 0.52) * 0.13;',
+          }
+          for old, new in replacements.items():
+              if old not in text:
+                  raise SystemExit(f'missing patch anchor: {old}')
+              text = text.replace(old, new)
+          path.write_text(text)
+          PY
+          rm -f .github/v3-facing-trigger
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.2.15
+
+      - name: Verify the corrected source
+        run: |
+          set -euo pipefail
+          bun install --frozen-lockfile
+          bun run test
+          bun run build:app
+        env:
+          AORI_BUILD_SHA: ${{ github.event.pull_request.head.sha }}
+
+      - name: Commit the visual correction
+        shell: bash
+        env:
+          HEAD_BRANCH: ${{ github.head_ref }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/titlePreview.ts .github/v3-facing-trigger
+          git commit -m "Face the live 3D title character toward the player"
+          git push origin "HEAD:${HEAD_BRANCH}"
