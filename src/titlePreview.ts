@@ -75,13 +75,13 @@ class TitleCharacterPreview {
 
     this.avatar = new AvatarRig("host", characterId);
     this.avatar.root.position.y = 0.12;
-    this.avatar.root.rotation.y = Math.PI;
+    this.avatar.root.rotation.y = 0;
     this.scene.add(this.avatar.root);
 
     this.state = {
       x: 0,
       z: 0,
-      yaw: Math.PI,
+      yaw: 0,
       speed: 0,
       motion: "idle",
       motionSequence: 0,
@@ -107,7 +107,7 @@ class TitleCharacterPreview {
     previous.dispose();
     this.avatar = new AvatarRig("host", characterId);
     this.avatar.root.position.y = 0.12;
-    this.avatar.root.rotation.y = Math.PI;
+    this.avatar.root.rotation.y = 0;
     this.scene.add(this.avatar.root);
     this.mount.classList.remove("title-preview--switching");
     void this.mount.offsetWidth;
@@ -208,7 +208,7 @@ class TitleCharacterPreview {
     const time = this.clock.elapsedTime;
     this.state.clientTime = performance.now();
     this.avatar.update(dt, this.state);
-    this.avatar.root.rotation.y = Math.PI + Math.sin(time * 0.52) * 0.13;
+    this.avatar.root.rotation.y = Math.sin(time * 0.52) * 0.13;
     this.avatar.root.position.y = 0.12 + Math.sin(time * 1.55) * 0.012;
     this.pedestal.rotation.y = time * 0.18;
     this.pedestal.children.forEach((child) => {
