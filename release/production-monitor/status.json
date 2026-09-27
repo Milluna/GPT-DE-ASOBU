@@ -2,11 +2,11 @@
   "status": "failure",
   "productionUrl": null,
   "discoverySource": null,
-  "expectedMainSha": "11eadc626e1430b4569963d1a31ab48592983f57",
+  "expectedMainSha": "f79ea4c48c572f0958256bd8beeddb2cc4e5ffa0",
   "version": "3.0.0",
   "visualVersion": "beautiful-3d-v3",
   "screenshotOutcome": "skipped",
-  "workflowRunId": "36335591307",
-  "workflowRunUrl": "https://github.com/Milluna/GPT-DE-ASOBU/actions/runs/36335591307",
-  "recordedAt": "2026-09-27T17:09:58.238Z"
+  "workflowRunId": "36351819282",
+  "workflowRunUrl": "https://github.com/Milluna/GPT-DE-ASOBU/actions/runs/36351819282",
+  "recordedAt": "2026-09-27T21:32:59.405Z"
 }
